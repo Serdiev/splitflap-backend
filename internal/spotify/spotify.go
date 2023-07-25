@@ -67,7 +67,11 @@ func (sc SpotifyClient) GetCurrentlyPlaying() (*models.SpotifyIsPlaying, error) 
 		return nil, fmt.Errorf("failed to parse API response: %w", err)
 	}
 
-	return mapToDto(spotifyResp), nil
+	if spotifyResp.IsPlaying {
+		return mapToDto(spotifyResp), nil
+	}
+
+	return nil, nil
 }
 
 func mapToDto(resp SpotifyResponse) *models.SpotifyIsPlaying {

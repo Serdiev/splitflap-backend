@@ -8,6 +8,7 @@ import (
 )
 
 type Configuration struct {
+	MQTT_ENABLED    bool
 	MQTT_BROKER_URL string
 	MQTT_TOPIC      string
 
@@ -35,6 +36,7 @@ func New() Configuration {
 	}
 
 	cfg = &Configuration{
+		MQTT_ENABLED:           os.Getenv("MQTT_ENABLED") == "true",
 		MQTT_BROKER_URL:        os.Getenv("MQTT_BROKER"),
 		MQTT_TOPIC:             os.Getenv("MQTT_TOPIC"),
 		SPOTIFY_URL:            os.Getenv("SPOTIFY_URL"),

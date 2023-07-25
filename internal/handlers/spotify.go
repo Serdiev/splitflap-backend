@@ -16,7 +16,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
-func (a Application) LoginCallback(c *gin.Context) {
+func (a *Application) LoginCallback(c *gin.Context) {
 	code := c.Query("code")
 	if code == "" {
 		c.JSON(http.StatusOK, "could not login, did not receive code")
@@ -61,15 +61,14 @@ func GetInitialAccessToken(code string) *oauth2.Token {
 	}
 	defer resp.Body.Close()
 
+	respBody, err := io.ReadAll(resp.Body)
+	fmt.Println(string(respBody))
+
 	// Check the response status code
 	if resp.StatusCode != http.StatusOK {
 		fmt.Println("Request failed with status code:", resp.StatusCode)
 		return nil
 	}
-
-	respBody, err := io.ReadAll(resp.Body)
-
-	fmt.Println(string(respBody))
 
 	auth := oauth2.Token{}
 

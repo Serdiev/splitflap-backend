@@ -7,14 +7,12 @@ import (
 )
 
 func Initiate(app *h.Application) {
-	var state = h.Idle
-
 	ticker := time.NewTicker(time.Second)
 	tick := 0
 	for range ticker.C {
 		tick++
 
-		switch state {
+		switch app.State {
 		case h.Idle:
 			if !isDivisibleBy(tick, 10) {
 				continue
@@ -26,7 +24,7 @@ func Initiate(app *h.Application) {
 			checkIfShouldSwapState(app)
 			break
 		case h.Stocks:
-			getCurrentlyPlaying(app)
+			handleSpotifyState(app)
 			break
 		case h.Spotify:
 			handleSpotifyState(app)
@@ -37,17 +35,19 @@ func Initiate(app *h.Application) {
 
 func checkIfShouldSwapState(app *h.Application) {
 	playing, err := app.Spotify.GetCurrentlyPlaying()
+	fmt.Println(playing, err)
+	fmt.Println("not playing anything?")
 }
 
 func handleSpotifyState(app *h.Application) bool {
-	playing, err := app.Spotify.GetCurrentlyPlaying()
+	playing, _ := app.Spotify.GetCurrentlyPlaying()
 	if playing == nil {
+		app.ResetSplitFlapState()
 		return false
 	}
 
 	app.SetSplitflapText("")
 	app.SetState(h.Spotify)
-	fmt.Println(playing)
 	return true
 }
 

@@ -47,7 +47,7 @@ type SpotifyClient interface {
 }
 
 // Sets text with correct length (inserting spaces or truncating)
-func (a Application) SetSplitflapText(text string) error {
+func (a *Application) SetSplitflapText(text string) error {
 	preparedText := text
 	diff := len(text) - cfg.SPLITFLAP_MODULE_COUNT
 
@@ -58,13 +58,19 @@ func (a Application) SetSplitflapText(text string) error {
 
 	// adds spaces to module_count
 	if diff < 0 {
-		preparedText += strings.Repeat(" ", diff)
+		preparedText += strings.Repeat(" ", -1*diff)
 	}
 
 	return a.sender.SendMessage(preparedText)
 }
 
 // Sets text with correct length (inserting spaces or truncating)
-func (a Application) SetState(state DisplayState) {
+func (a *Application) SetState(state DisplayState) {
 	a.State = state
+}
+
+// Sets mode to idle and sets text to empty
+func (a *Application) ResetSplitFlapState() {
+	a.State = Idle
+	a.sender.SendMessage(strings.Repeat(" ", cfg.SPLITFLAP_MODULE_COUNT))
 }
