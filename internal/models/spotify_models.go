@@ -6,3 +6,10 @@ type SpotifyIsPlaying struct {
 	SecondsLeft int
 	TimeLeft    string
 }
+
+type StockInfo struct {
+	Tick        string
+	Company     string
+	DailyChange string
+	YTD         string
+}

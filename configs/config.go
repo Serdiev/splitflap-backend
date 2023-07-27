@@ -18,6 +18,9 @@ type Configuration struct {
 	SPOTIFY_CLIENT_SECRET string
 	SPOTIFY_REDIRECT_URL  string
 
+	ALPHA_VANTAGE_URL     string
+	ALPHA_VANTAGE_API_KEY string
+
 	SPLITFLAP_MODULE_COUNT int
 }
 
@@ -36,13 +39,18 @@ func New() Configuration {
 	}
 
 	cfg = &Configuration{
-		MQTT_ENABLED:           os.Getenv("MQTT_ENABLED") == "true",
-		MQTT_BROKER_URL:        os.Getenv("MQTT_BROKER"),
-		MQTT_TOPIC:             os.Getenv("MQTT_TOPIC"),
-		SPOTIFY_URL:            os.Getenv("SPOTIFY_URL"),
-		SPOTIFY_TOKEN_URL:      os.Getenv("SPOTIFY_TOKEN_URL"),
-		SPOTIFY_CLIENT_ID:      os.Getenv("SPOTIFY_CLIENT_ID"),
-		SPOTIFY_CLIENT_SECRET:  os.Getenv("SPOTIFY_CLIENT_SECRET"),
+		MQTT_ENABLED:    os.Getenv("MQTT_ENABLED") == "true",
+		MQTT_BROKER_URL: os.Getenv("MQTT_BROKER"),
+		MQTT_TOPIC:      os.Getenv("MQTT_TOPIC"),
+
+		SPOTIFY_URL:           os.Getenv("SPOTIFY_URL"),
+		SPOTIFY_TOKEN_URL:     os.Getenv("SPOTIFY_TOKEN_URL"),
+		SPOTIFY_CLIENT_ID:     os.Getenv("SPOTIFY_CLIENT_ID"),
+		SPOTIFY_CLIENT_SECRET: os.Getenv("SPOTIFY_CLIENT_SECRET"),
+
+		ALPHA_VANTAGE_URL:     os.Getenv("ALPHA_VANTAGE_URL"),
+		ALPHA_VANTAGE_API_KEY: os.Getenv("ALPHA_VANTAGE_API_KEY"),
+
 		SPOTIFY_REDIRECT_URL:   os.Getenv("SPOTIFY_REDIRECT_URL"),
 		SPLITFLAP_MODULE_COUNT: count,
 	}

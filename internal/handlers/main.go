@@ -6,6 +6,7 @@ import (
 	"splitflap-backend/internal/models"
 	"splitflap-backend/internal/sender"
 	"splitflap-backend/internal/spotify"
+	"splitflap-backend/internal/stocks"
 	"strings"
 )
 
@@ -24,8 +25,9 @@ const (
 func CreateService(c context.Context) Application {
 	return Application{
 		Context: c,
-		sender:  sender.NewMQTTSender(cfg.MQTT_TOPIC),
+		sender:  sender.NewSerialSender(),
 		Spotify: spotify.NewNoopSpotifyClient(),
+		Stocks:  stocks.NewStockClient(),
 		State:   Idle,
 	}
 }
@@ -34,6 +36,7 @@ type Application struct {
 	Context context.Context
 	sender  MessageSender
 	Spotify SpotifyClient
+	Stocks  StocksClient
 	State   DisplayState
 }
 
@@ -41,9 +44,8 @@ type MessageSender interface {
 	SendMessage(text string) error
 }
 
-type SpotifyClient interface {
-	IsLoggedIn() bool
-	GetCurrentlyPlaying() (*models.SpotifyIsPlaying, error)
+type StocksClient interface {
+	GetStockInfo(tick string) (*models.StockInfo, error)
 }
 
 // Sets text with correct length (inserting spaces or truncating)

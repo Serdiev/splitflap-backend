@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"splitflap-backend/internal/models"
 	"splitflap-backend/internal/spotify"
 	"strings"
 	"sync"
@@ -15,6 +16,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"golang.org/x/oauth2"
 )
+
+type SpotifyClient interface {
+	IsLoggedIn() bool
+	GetCurrentlyPlaying() (*models.SpotifyIsPlaying, error)
+}
 
 func (a *Application) LoginCallback(c *gin.Context) {
 	code := c.Query("code")

@@ -3,3 +3,6 @@ build:
 
 run:
 	go run cmd/splitflap/main.go
+
+sand:
+	go run cmd/sandbox/main.go

@@ -24,7 +24,7 @@ func Initiate(app *h.Application) {
 			checkIfShouldSwapState(app)
 			break
 		case h.Stocks:
-			handleSpotifyState(app)
+			handleStocksState(app)
 			break
 		case h.Spotify:
 			handleSpotifyState(app)
@@ -48,6 +48,11 @@ func handleSpotifyState(app *h.Application) bool {
 
 	app.SetSplitflapText("")
 	app.SetState(h.Spotify)
+	return true
+}
+
+func handleStocksState(app *h.Application) bool {
+	app.Stocks.GetStockInfo("msft")
 	return true
 }
 
