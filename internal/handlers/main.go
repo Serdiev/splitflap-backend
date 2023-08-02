@@ -27,7 +27,7 @@ func CreateService(c context.Context) Application {
 		Context: c,
 		sender:  sender.NewSerialSender(),
 		Spotify: spotify.NewNoopSpotifyClient(),
-		Stocks:  stocks.NewStockClient(),
+		Stocks:  stocks.NewAvanzaClient(),
 		State:   Idle,
 	}
 }
@@ -45,7 +45,7 @@ type MessageSender interface {
 }
 
 type StocksClient interface {
-	GetStockInfo(tick string) (*models.StockInfo, error)
+	GetStockInfo(s stocks.Stock) (*models.StockInfo, error)
 }
 
 // Sets text with correct length (inserting spaces or truncating)

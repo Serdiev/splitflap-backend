@@ -6,3 +6,7 @@ run:
 
 sand:
 	go run cmd/sandbox/main.go
+
+
+test:
+	go test ./...

@@ -19,13 +19,13 @@ func GetUrlParseIfOK[resType any](url string, res resType) (*resType, error) {
 	if resp.StatusCode == http.StatusOK {
 		respBody, err := io.ReadAll(resp.Body)
 
-		series := new(resType)
+		val := new(resType)
 
-		err = json.Unmarshal(respBody, series)
+		err = json.Unmarshal(respBody, val)
 		if err != nil {
 			return nil, errors.New("could not unmarshal")
 		}
-		return series, nil
+		return val, nil
 	}
 
 	return nil, errors.New("unknown error")

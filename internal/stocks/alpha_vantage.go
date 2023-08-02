@@ -18,27 +18,27 @@ func NewNoopStockClient() AlphaVantageClient {
 	return AlphaVantageClient{}
 }
 
-func NewStockClient() AlphaVantageClient {
+func NewAlphaVantageStockClient() AlphaVantageClient {
 	return AlphaVantageClient{
 		baseUrl: cfg.ALPHA_VANTAGE_URL,
 		apiKey:  cfg.ALPHA_VANTAGE_API_KEY,
 	}
 }
 
-func (c AlphaVantageClient) GetStockInfo(symbol string) (*models.StockInfo, error) {
-	series, err := c.getTimeSeries(MonthlyAdjusted, symbol)
+func (c AlphaVantageClient) GetStockInfo(s Stock) (*models.StockInfo, error) {
+	series, err := c.getTimeSeries(MonthlyAdjusted, s.AVTicker)
 	if err != nil {
 		fmt.Println(err)
 		return nil, err
 	}
 
-	q, err := c.getQuote(symbol)
+	q, err := c.getQuote(s.AVTicker)
 
+	fmt.Println(q)
 	info := models.StockInfo{
-		Tick:        symbol,
-		Company:     series.MetaData.Symbol,
-		DailyChange: q.ChangePercent,
-		YTD:         q.Change,
+		CompanyName: series.MetaData.Symbol,
+		DailyChange: 0, //q.ChangePercent,
+		YTD:         0, //q.Change,
 	}
 
 	return &info, nil

@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/eclipse/paho.mqtt.golang v1.3.0
 	github.com/gin-gonic/gin v1.9.1
+	github.com/go-playground/assert/v2 v2.2.0
 	github.com/joho/godotenv v1.5.1
 	golang.org/x/oauth2 v0.10.0
 )

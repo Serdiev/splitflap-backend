@@ -8,8 +8,7 @@ type SpotifyIsPlaying struct {
 }
 
 type StockInfo struct {
-	Tick        string
-	Company     string
-	DailyChange string
-	YTD         string
+	CompanyName string
+	DailyChange float64
+	YTD         float64
 }
