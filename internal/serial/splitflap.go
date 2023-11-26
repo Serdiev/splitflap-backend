@@ -1,4 +1,4 @@
-package main
+package serial
 
 import (
 	"bytes"
@@ -22,19 +22,19 @@ const splitflapBaud = 230400
 const retryTimeout float32 = 0.25
 
 const (
-	ForceMovementNone ForceMovement = iota + 1
-	ForceMovementOnlyNonBlank
-	ForceMovementAll
+	ForceMovementNone         ForceMovement = "none"
+	ForceMovementOnlyNonBlank ForceMovement = "only_non_blank"
+	ForceMovementAll          ForceMovement = "all"
 )
 
-type ForceMovement int
+type ForceMovement string
 
 type EnqueuedMessage struct {
 	nonce   uint32
 	message []byte
 }
 
-type splitflap struct {
+type Splitflap struct {
 	serial          *serial.Port
 	logger          *log.Logger
 	outQ            chan EnqueuedMessage
@@ -57,8 +57,8 @@ var defaultAlphabet = []rune{
 	'.', ',', '\'',
 }
 
-func newSplitflap(serialInstance *serial.Port) *splitflap {
-	return &splitflap{
+func NewSplitflap(serialInstance *serial.Port) *Splitflap {
+	s := &Splitflap{
 		serial:          serialInstance,
 		logger:          log.New(os.Stdout, "splitflap: ", log.LstdFlags),
 		outQ:            make(chan EnqueuedMessage),
@@ -66,12 +66,33 @@ func newSplitflap(serialInstance *serial.Port) *splitflap {
 		nextNonce:       uint32(rand.Intn(256)),
 		run:             true,
 		messageHandlers: make(map[sp.SplitFlapType]func(interface{})),
-		currentConfig:   &sp.SplitflapConfig{},
+		currentConfig:   nil,
 		alphabet:        defaultAlphabet,
+		numModules:      6, // TODO: remove
+	}
+
+	// temp code
+	s.createModules(6)
+
+	return s
+}
+
+func (sf *Splitflap) createModules(moduleCount int) {
+	sf.currentConfig = &sp.SplitflapConfig{
+		Modules: []*sp.SplitflapConfig_ModuleConfig{},
+	}
+	for i := 0; i < moduleCount; i++ {
+		newModule := sp.SplitflapConfig_ModuleConfig{
+			TargetFlapIndex: 0,
+			MovementNonce:   0,
+			ResetNonce:      0,
+		}
+
+		sf.currentConfig.Modules = append(sf.currentConfig.Modules, &newModule)
 	}
 }
 
-func (sf *splitflap) readLoop() {
+func (sf *Splitflap) readLoop() {
 	sf.logger.Println("Read loop started")
 	buffer := make([]byte, 0)
 	for {
@@ -103,7 +124,7 @@ func calculateCRC32(data []byte) uint32 {
 	return crc32hash.Sum32()
 }
 
-func (sf *splitflap) processFrame(frame []byte) {
+func (sf *Splitflap) processFrame(frame []byte) {
 	decoded := cobs.Decode(frame)
 	// if err != nil {
 	// 	sf.logger.Printf("Failed decode (%d bytes)\n", len(frame))
@@ -161,7 +182,7 @@ func (sf *splitflap) processFrame(frame []byte) {
 	handler(message.GetPayload())
 }
 
-func (sf *splitflap) writeLoop() {
+func (sf *Splitflap) writeLoop() {
 	sf.logger.Println("Write loop started")
 	for {
 		data := <-sf.outQ
@@ -203,7 +224,7 @@ func (sf *splitflap) writeLoop() {
 	}
 }
 
-func (sf *splitflap) setText(text string, forceMovement ForceMovement) error {
+func (sf *Splitflap) SetText(text string, forceMovement ForceMovement) error {
 	// Transform text to a list of flap indexes (and pad with blanks so that all modules get updated even if text is shorter)
 	var positions []uint32
 	for _, c := range text {
@@ -241,17 +262,7 @@ func (sf *splitflap) setText(text string, forceMovement ForceMovement) error {
 	return sf.setPositions(positions, forceMovementList)
 }
 
-func (sf *splitflap) alphabetIndex(c rune) uint32 {
-	for i, char := range sf.alphabet {
-		if char == c {
-			return uint32(i)
-		}
-	}
-
-	return 0 // Default to 0 if character not found in alphabet
-}
-
-func (sf *splitflap) setPositions(positions []uint32, forceMovementList []bool) error {
+func (sf *Splitflap) setPositions(positions []uint32, forceMovementList []bool) error {
 	sf.lock.Lock()
 	defer sf.lock.Unlock()
 
@@ -276,19 +287,21 @@ func (sf *splitflap) setPositions(positions []uint32, forceMovementList []bool) 
 		}
 	}
 
-	sf.enqueueMessage(sf.currentConfig)
+	message := &sp.ToSplitflap{
+		Payload: &sp.ToSplitflap_SplitflapConfig{
+			SplitflapConfig: sf.currentConfig,
+		},
+	}
+
+	sf.enqueueMessage(message)
 	return nil
 }
 
-func (sf *splitflap) enqueueMessage(message *sp.SplitflapConfig) {
-	sf.lock.Lock()
-	defer sf.lock.Unlock()
-
+func (sf *Splitflap) enqueueMessage(message *sp.ToSplitflap) {
 	nonce := sf.nextNonce
 	sf.nextNonce++
 
-	// TODO: Maybe needed?
-	// message.Nonce = nonce
+	message.Nonce = 1337 //nonce
 
 	payload, err := proto.Marshal(message)
 	if err != nil {
@@ -296,12 +309,14 @@ func (sf *splitflap) enqueueMessage(message *sp.SplitflapConfig) {
 		return
 	}
 
-	crc := calculateCRC32(payload)
-	payload = append(payload, byte(crc&0xff), byte((crc>>8)&0xff), byte((crc>>16)&0xff), byte((crc>>24)&0xff))
+	payload = addCrc32ChecksumToPayload(payload)
+
+	fmt.Println("\x08\xb9\n\x1a\x18\n\x02\x08\x01\n\x02\x08\x02\n\x02\x08\x03\n\x02\x08\x04\n\x02\x08\x05\n\x02\x08\x06\xef\xbcg\xbe")
+	fmt.Println("\x08\xb9\n\x1a\x18\n\x02\x08\x01\n\x02\x08\x02\n\x02\x08\x03\n\x02\x08\x04\n\x02\x08\x05\n\x02\x08\x06\xef\xbcg\xbe") // Goal
 
 	newMessage := EnqueuedMessage{
 		nonce:   nonce,
-		message: cobs.Encode(payload),
+		message: payload,
 	}
 
 	sf.outQ <- newMessage
@@ -314,12 +329,35 @@ func (sf *splitflap) enqueueMessage(message *sp.SplitflapConfig) {
 	}
 }
 
-func (sf *splitflap) start() {
+func addCrc32ChecksumToPayload(payload []byte) []byte {
+	crc32Hash := crc32.NewIEEE()
+	crc32Hash.Write(payload)
+	checksum := crc32Hash.Sum32()
+	byteSlice := make([]byte, 4)
+	binary.LittleEndian.PutUint32(byteSlice, checksum)
+
+	for _, b := range byteSlice {
+		payload = append(payload, b)
+	}
+	return payload
+}
+
+func (sf *Splitflap) alphabetIndex(c rune) uint32 {
+	for i, char := range sf.alphabet {
+		if char == c {
+			return uint32(i)
+		}
+	}
+
+	return 0 // Default to 0 if character not found in alphabet
+}
+
+func (sf *Splitflap) start() {
 	go sf.readLoop()
 	go sf.writeLoop()
 }
 
-func (sf *splitflap) shutdown() {
+func (sf *Splitflap) shutdown() {
 	sf.logger.Println("Shutting down...")
 	sf.run = false
 	sf.serial.Close()

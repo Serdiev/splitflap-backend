@@ -1,16 +1,17 @@
 package main
 
-import (
-	"context"
-	"splitflap-backend/internal/handlers"
-	"splitflap-backend/internal/statemachine"
-)
+import "splitflap-backend/internal/serial"
 
 func main() {
-	c := context.Background()
-	app := handlers.CreateService(c)
+	// c := context.Background()
+	// app := handlers.CreateService(c)
 
-	statemachine.HandleStocksState(&app)
+	// statemachine.HandleStocksState(&app)
+
+	sf := serial.NewSplitflap(nil)
+
+	sf.SetText("abcdef", serial.ForceMovementNone)
+
 	// s, err := app.Stocks.GetStockInfo(statemachine.TRACKED_STOCKS[0])
 
 	// fmt.Println(s, err)

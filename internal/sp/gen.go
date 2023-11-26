@@ -1,4 +1,4 @@
-package splitflap_proto
+package sp
 
 import (
 	reflect "reflect"
@@ -1349,7 +1349,7 @@ func file_test_proto_init() {
 	if File_test_proto != nil {
 		return
 	}
-	file_nanopb_proto_init()
+	// file_nanopb_proto_init()
 	if !protoimpl.UnsafeEnabled {
 		file_test_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SplitflapState); i {
@@ -1424,16 +1424,16 @@ func file_test_proto_init() {
 			}
 		}
 		file_test_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SplitflapConfig); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
+			// switch v := v.(*SplitflapConfig); i {
+			// case 0:
+			// 	return &v.state
+			// case 1:
+			// 	return &v.sizeCache
+			// case 2:
+			// 	return &v.unknownFields
+			// default:
+			return nil
+			// }
 		}
 		file_test_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RequestState); i {
