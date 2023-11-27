@@ -1,7 +1,6 @@
-package serial
+package usb_serial
 
 import (
-	"bytes"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -13,9 +12,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/dim13/cobs"
 	"github.com/golang/protobuf/proto"
-	"github.com/tarm/serial"
+	"go.bug.st/serial"
 )
 
 const splitflapBaud = 230400
@@ -68,16 +66,33 @@ func NewSplitflap(serialInstance *serial.Port) *Splitflap {
 		messageHandlers: make(map[sp.SplitFlapType]func(interface{})),
 		currentConfig:   nil,
 		alphabet:        defaultAlphabet,
-		numModules:      6, // TODO: remove
 	}
 
 	// temp code
-	s.createModules(6)
+	s.initializeModuleList(6)
 
 	return s
 }
 
-func (sf *Splitflap) createModules(moduleCount int) {
+func (sf *Splitflap) readSerial(buffer *[]byte) (n int, err error) {
+	return (*sf.serial).Read(*buffer)
+}
+
+func (sf *Splitflap) writeSerial(buffer []byte) (n int, err error) {
+	return (*sf.serial).Write(buffer)
+}
+
+func (sf *Splitflap) closeSerial() error {
+	return (*sf.serial).Close()
+}
+
+func (sf *Splitflap) getSerialPort() {
+	a, b := serial.GetPortsList()
+	fmt.Println(a, b)
+}
+
+func (sf *Splitflap) initializeModuleList(moduleCount int) {
+	sf.numModules = 6
 	sf.currentConfig = &sp.SplitflapConfig{
 		Modules: []*sp.SplitflapConfig_ModuleConfig{},
 	}
@@ -94,27 +109,28 @@ func (sf *Splitflap) createModules(moduleCount int) {
 
 func (sf *Splitflap) readLoop() {
 	sf.logger.Println("Read loop started")
-	buffer := make([]byte, 0)
+	buffer := []byte{}
 	for {
-		tmp := make([]byte, 128)
-		n, err := sf.serial.Read(tmp)
+		if !sf.run {
+			return
+		}
+
+		tmp := []byte{}
+		_, err := (*sf.serial).Read(tmp)
 		if err != nil {
 			sf.logger.Printf("Error reading from serial: %v\n", err)
 			return
 		}
-		buffer = append(buffer, tmp[:n]...)
 
-		nullIndex := bytes.IndexByte(buffer, 0)
-		for nullIndex != -1 {
-			frame := buffer[:nullIndex]
-			buffer = buffer[nullIndex+1:]
-			sf.processFrame(frame)
-			nullIndex = bytes.IndexByte(buffer, 0)
+		buffer = append(buffer, tmp...)
+
+		if len(buffer) == 0 || buffer[len(buffer)-1] != '0' {
+			// no data or data stream not ready
+			continue
 		}
 
-		if !sf.run {
-			return
-		}
+		sf.processFrame(buffer)
+		buffer = []byte{}
 	}
 }
 
@@ -124,8 +140,8 @@ func calculateCRC32(data []byte) uint32 {
 	return crc32hash.Sum32()
 }
 
-func (sf *Splitflap) processFrame(frame []byte) {
-	decoded := cobs.Decode(frame)
+func (sf *Splitflap) processFrame(decoded []byte) {
+	// decoded := cobs.Decode(frame)
 	// if err != nil {
 	// 	sf.logger.Printf("Failed decode (%d bytes)\n", len(frame))
 	// 	sf.logger.Printf("%s\n", hex.Dump(frame))
@@ -160,14 +176,9 @@ func (sf *Splitflap) processFrame(frame []byte) {
 		sf.ackQ <- nonce
 	case *sp.FromSplitflap_SplitflapState:
 		numModulesReported := len(message.GetSplitflapState().GetModules())
-		sf.lock.Lock()
-		defer sf.lock.Unlock()
 
 		if sf.numModules == 0 {
-			sf.numModules = numModulesReported
-			for i := 0; i < numModulesReported; i++ {
-				sf.currentConfig.Modules = append(sf.currentConfig.Modules, &sp.SplitflapConfig_ModuleConfig{})
-			}
+			sf.initializeModuleList(numModulesReported)
 		} else {
 			if sf.numModules != numModulesReported {
 				sf.logger.Printf("Number of reported modules changed (was %d, now %d)\n", sf.numModules, numModulesReported)
@@ -200,8 +211,8 @@ func (sf *Splitflap) writeLoop() {
 				if nextRetry.After(time.Time{}) {
 					sf.logger.Println("Retry write...")
 				}
-				sf.serial.Write(encodedMessage)
-				sf.serial.Write([]byte{0})
+				sf.writeSerial(encodedMessage)
+				sf.writeSerial([]byte{0})
 				nextRetry = time.Now().Add(time.Second)
 			}
 
@@ -301,7 +312,7 @@ func (sf *Splitflap) enqueueMessage(message *sp.ToSplitflap) {
 	nonce := sf.nextNonce
 	sf.nextNonce++
 
-	message.Nonce = 1337 //nonce
+	message.Nonce = nonce
 
 	payload, err := proto.Marshal(message)
 	if err != nil {
@@ -310,9 +321,6 @@ func (sf *Splitflap) enqueueMessage(message *sp.ToSplitflap) {
 	}
 
 	payload = addCrc32ChecksumToPayload(payload)
-
-	fmt.Println("\x08\xb9\n\x1a\x18\n\x02\x08\x01\n\x02\x08\x02\n\x02\x08\x03\n\x02\x08\x04\n\x02\x08\x05\n\x02\x08\x06\xef\xbcg\xbe")
-	fmt.Println("\x08\xb9\n\x1a\x18\n\x02\x08\x01\n\x02\x08\x02\n\x02\x08\x03\n\x02\x08\x04\n\x02\x08\x05\n\x02\x08\x06\xef\xbcg\xbe") // Goal
 
 	newMessage := EnqueuedMessage{
 		nonce:   nonce,
@@ -360,7 +368,7 @@ func (sf *Splitflap) start() {
 func (sf *Splitflap) shutdown() {
 	sf.logger.Println("Shutting down...")
 	sf.run = false
-	sf.serial.Close()
+	sf.closeSerial()
 	close(sf.outQ)
 	close(sf.ackQ)
 }

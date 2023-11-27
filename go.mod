@@ -3,13 +3,12 @@ module splitflap-backend
 go 1.18
 
 require (
-	github.com/dim13/cobs v1.0.2
 	github.com/eclipse/paho.mqtt.golang v1.3.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-playground/assert/v2 v2.2.0
 	github.com/golang/protobuf v1.5.3
 	github.com/joho/godotenv v1.5.1
-	github.com/tarm/serial v0.0.0-20180830185346-98f6abe2eb07
+	go.bug.st/serial v1.6.1
 	golang.org/x/oauth2 v0.10.0
 	google.golang.org/protobuf v1.31.0
 )
@@ -18,6 +17,7 @@ require (
 	github.com/bytedance/sonic v1.10.0-rc2 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20230717121745-296ad89f973d // indirect
 	github.com/chenzhuoyu/iasm v0.9.0 // indirect
+	github.com/creack/goselect v0.1.2 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect

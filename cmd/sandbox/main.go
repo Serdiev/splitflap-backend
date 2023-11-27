@@ -1,6 +1,11 @@
 package main
 
-import "splitflap-backend/internal/serial"
+import (
+	"fmt"
+	"splitflap-backend/internal/usb_serial"
+
+	"go.bug.st/serial"
+)
 
 func main() {
 	// c := context.Background()
@@ -8,9 +13,12 @@ func main() {
 
 	// statemachine.HandleStocksState(&app)
 
-	sf := serial.NewSplitflap(nil)
+	a, b := serial.GetPortsList()
 
-	sf.SetText("abcdef", serial.ForceMovementNone)
+	fmt.Println(a, b)
+	sf := usb_serial.NewSplitflap(nil)
+
+	sf.SetText("abcdef", usb_serial.ForceMovementNone)
 
 	// s, err := app.Stocks.GetStockInfo(statemachine.TRACKED_STOCKS[0])
 
