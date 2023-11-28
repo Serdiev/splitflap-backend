@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-func GetUrlParseIfOK[resType any](url string, res resType) (*resType, error) {
+func GetUrl[resType any](url string, res resType) (*resType, error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		fmt.Println(err)

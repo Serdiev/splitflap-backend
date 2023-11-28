@@ -38,5 +38,5 @@ func (c AvanzaClient) GetStockInfo(s Stock) (*models.StockInfo, error) {
 func (c AvanzaClient) getStockData(avanzaID string) (*AvanzaResponse, error) {
 	url := fmt.Sprintf("https://www.avanza.se/_api/market-guide/stock/%s", avanzaID)
 	var series AvanzaResponse
-	return utils.GetUrlParseIfOK(url, series)
+	return utils.GetUrl(url, series)
 }

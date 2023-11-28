@@ -48,14 +48,14 @@ func (c AlphaVantageClient) GetStockInfo(s Stock) (*models.StockInfo, error) {
 func (c AlphaVantageClient) getTimeSeries(function, symbol string) (*TimeSeriesData, error) {
 	url := fmt.Sprintf("%s/query?function=%s&symbol=%s&apikey=%s", c.baseUrl, function, symbol, c.apiKey)
 	var series TimeSeriesData
-	return utils.GetUrlParseIfOK(url, series)
+	return utils.GetUrl(url, series)
 }
 
 // get latest info of symbol
 func (c AlphaVantageClient) getQuote(symbol string) (*Quote, error) {
 	url := fmt.Sprintf("%s/query?function=GLOBAL_QUOTE&symbol=%s&apikey=%s", c.baseUrl, symbol, c.apiKey)
 	var quote QuoteResponse
-	res, err := utils.GetUrlParseIfOK(url, quote)
+	res, err := utils.GetUrl(url, quote)
 
 	if err != nil {
 		return nil, err

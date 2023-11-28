@@ -1,42 +1,34 @@
 package usb_serial
 
 import (
-	"encoding/binary"
 	"errors"
-	"fmt"
-	"hash/crc32"
-	"log"
-	"math/rand"
-	"os"
 	"splitflap-backend/internal/sp"
+	"splitflap-backend/internal/utils"
 	"sync"
 	"time"
 
-	"github.com/golang/protobuf/proto"
-	"go.bug.st/serial"
+	"github.com/rs/zerolog/log"
+	"google.golang.org/protobuf/proto"
 )
-
-const splitflapBaud = 230400
-const retryTimeout float32 = 0.25
 
 const (
 	ForceMovementNone         ForceMovement = "none"
 	ForceMovementOnlyNonBlank ForceMovement = "only_non_blank"
 	ForceMovementAll          ForceMovement = "all"
+	RetryTime                               = time.Millisecond * 5000
 )
 
 type ForceMovement string
 
 type EnqueuedMessage struct {
-	nonce   uint32
-	message []byte
+	nonce uint32
+	bytes []byte // bytes with CRC32 + null ending
 }
 
 type Splitflap struct {
-	serial          *serial.Port
-	logger          *log.Logger
-	outQ            chan EnqueuedMessage
-	ackQ            chan uint32
+	serial          SerialConnection
+	outQueue        chan EnqueuedMessage
+	ackQueue        chan uint32
 	nextNonce       uint32
 	run             bool
 	lock            sync.Mutex
@@ -48,51 +40,26 @@ type Splitflap struct {
 
 type forceMovementFunc func(rune) bool
 
-var defaultAlphabet = []rune{
-	' ', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
-	'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-	'.', ',', '\'',
-}
-
-func NewSplitflap(serialInstance *serial.Port) *Splitflap {
+func NewSplitflap(serialInstance SerialConnection) *Splitflap {
 	s := &Splitflap{
 		serial:          serialInstance,
-		logger:          log.New(os.Stdout, "splitflap: ", log.LstdFlags),
-		outQ:            make(chan EnqueuedMessage),
-		ackQ:            make(chan uint32),
-		nextNonce:       uint32(rand.Intn(256)),
+		outQueue:        make(chan EnqueuedMessage, 100),
+		ackQueue:        make(chan uint32, 100),
+		nextNonce:       100, //uint32(rand.Intn(256)),
 		run:             true,
 		messageHandlers: make(map[sp.SplitFlapType]func(interface{})),
 		currentConfig:   nil,
-		alphabet:        defaultAlphabet,
+		alphabet:        utils.DEFAULT_ALPHABET,
 	}
 
-	// temp code
+	// TODO: Remove later
 	s.initializeModuleList(6)
 
 	return s
 }
 
-func (sf *Splitflap) readSerial(buffer *[]byte) (n int, err error) {
-	return (*sf.serial).Read(*buffer)
-}
-
-func (sf *Splitflap) writeSerial(buffer []byte) (n int, err error) {
-	return (*sf.serial).Write(buffer)
-}
-
-func (sf *Splitflap) closeSerial() error {
-	return (*sf.serial).Close()
-}
-
-func (sf *Splitflap) getSerialPort() {
-	a, b := serial.GetPortsList()
-	fmt.Println(a, b)
-}
-
 func (sf *Splitflap) initializeModuleList(moduleCount int) {
-	sf.numModules = 6
+	sf.numModules = moduleCount
 	sf.currentConfig = &sp.SplitflapConfig{
 		Modules: []*sp.SplitflapConfig_ModuleConfig{},
 	}
@@ -108,134 +75,154 @@ func (sf *Splitflap) initializeModuleList(moduleCount int) {
 }
 
 func (sf *Splitflap) readLoop() {
-	sf.logger.Println("Read loop started")
+	log.Info().Msg("Read loop started")
 	buffer := []byte{}
+	next := time.Now()
 	for {
 		if !sf.run {
 			return
 		}
 
-		tmp := []byte{}
-		_, err := (*sf.serial).Read(tmp)
+		// TODO: remove
+		if time.Now().Before(next) {
+			continue
+		}
+		next = time.Now().Add(time.Second * 1)
+
+		newBytes, err := sf.serial.Read()
 		if err != nil {
-			sf.logger.Printf("Error reading from serial: %v\n", err)
+			log.Info().Msgf("Error reading from serial: %v\n", err)
 			return
 		}
 
-		buffer = append(buffer, tmp...)
-
-		if len(buffer) == 0 || buffer[len(buffer)-1] != '0' {
-			// no data or data stream not ready
+		if len(newBytes) == 0 {
 			continue
 		}
 
-		sf.processFrame(buffer)
+		log.Info().Msg("Got some data!")
+		buffer = append(buffer, newBytes...)
+
+		lastByte := buffer[len(buffer)-1]
+		if lastByte != 0 {
+			// no data or data stream not ready
+
+			log.Info().Msg("not end of message yet")
+			continue
+		}
+
+		log.Info().Msg("got buffer values")
+		sf.processFrame(buffer[:len(buffer)-1])
 		buffer = []byte{}
 	}
 }
 
-func calculateCRC32(data []byte) uint32 {
-	crc32hash := crc32.NewIEEE()
-	crc32hash.Write(data)
-	return crc32hash.Sum32()
-}
-
 func (sf *Splitflap) processFrame(decoded []byte) {
-	// decoded := cobs.Decode(frame)
-	// if err != nil {
-	// 	sf.logger.Printf("Failed decode (%d bytes)\n", len(frame))
-	// 	sf.logger.Printf("%s\n", hex.Dump(frame))
-	// 	return
-	// }
-
-	if len(decoded) < 4 {
-		fmt.Println("empty...")
+	payload, validCrc := utils.ParseCRC32EncodedPayload(decoded)
+	if !validCrc {
 		return
 	}
 
-	payload := decoded[:len(decoded)-4]
-	expectedCRC := calculateCRC32(payload)
-	providedCRC := binary.LittleEndian.Uint32(decoded[len(decoded)-4:])
-
-	if expectedCRC != providedCRC {
-		sf.logger.Printf("Bad CRC. expected=%#x, actual=%#x\n", expectedCRC, providedCRC)
-		return
-	}
-
+	log.Info().Msg("Got valid crc32")
 	message := &sp.FromSplitflap{}
 
 	if err := proto.Unmarshal(payload, message); err != nil {
-		sf.logger.Printf("Failed to unmarshal message: %v\n", err)
+		log.Info().Msgf("Failed to unmarshal message: %v\n", err)
 		return
 	}
-	sf.logger.Printf("%v\n", message)
+	log.Info().Msgf("Received message %v\n", message)
 
 	switch message.GetPayload().(type) {
 	case *sp.FromSplitflap_Ack:
 		nonce := message.GetAck().GetNonce()
-		sf.ackQ <- nonce
+		sf.ackQueue <- nonce
 	case *sp.FromSplitflap_SplitflapState:
 		numModulesReported := len(message.GetSplitflapState().GetModules())
 
 		if sf.numModules == 0 {
 			sf.initializeModuleList(numModulesReported)
-		} else {
-			if sf.numModules != numModulesReported {
-				sf.logger.Printf("Number of reported modules changed (was %d, now %d)\n", sf.numModules, numModulesReported)
-			}
+		} else if sf.numModules != numModulesReported {
+			log.Info().Msgf("Number of reported modules changed (was %d, now %d)\n", sf.numModules, numModulesReported)
 		}
 	}
 
-	sf.lock.Lock()
-	defer sf.lock.Unlock()
+	// sf.lock.Lock()
+	// defer sf.lock.Unlock()
 
-	handler := sf.messageHandlers[message.GetPayloadType()]
-	handler(message.GetPayload())
+	// handler := sf.messageHandlers[message.GetPayloadType()]
+	// handler(message.GetPayload())
+}
+
+func (sf *Splitflap) waitingForOutgoingMessage() bool {
+	return len(sf.outQueue) == 0
+}
+
+func (sf *Splitflap) waitingForIncomingMessage() bool {
+	return len(sf.ackQueue) == 0
 }
 
 func (sf *Splitflap) writeLoop() {
-	sf.logger.Println("Write loop started")
+	log.Info().Msg("Write loop started")
+
+	next := time.Now()
 	for {
-		data := <-sf.outQ
-		// Check for shutdown
 		if !sf.run {
-			sf.logger.Println("Write loop exiting @ _out_q")
+			log.Info().Msg("Stop running, exiting write loop")
 			return
 		}
-		nonce := data.nonce
-		encodedMessage := data.message
+
+		// TODO: remove
+		if time.Now().Before(next) {
+			continue
+		}
+		next = time.Now().Add(time.Second * 1)
+
+		if sf.waitingForOutgoingMessage() {
+			log.Info().Msg("waiting for outgoing messages")
+			continue
+		}
+
+		enqueuedMessage := <-sf.outQueue
 
 		nextRetry := time.Now()
+		writeCount := 0
 		for {
+			if !sf.run {
+				log.Info().Msg("Stop running, exiting write loop")
+				return
+			}
+
 			if time.Now().After(nextRetry) {
-				if nextRetry.After(time.Time{}) {
-					sf.logger.Println("Retry write...")
+				if writeCount > 0 {
+					log.Info().Msg("Write message again")
 				}
-				sf.writeSerial(encodedMessage)
-				sf.writeSerial([]byte{0})
-				nextRetry = time.Now().Add(time.Second)
+				writeCount++
+				log.Info().Msgf("len %d", len(enqueuedMessage.bytes))
+				log.Info().Msgf("Writing message %x", enqueuedMessage.bytes)
+				sf.serial.Write(enqueuedMessage.bytes)
+				nextRetry = time.Now().Add(RetryTime)
 			}
 
-			select {
-			case latestAckNonce := <-sf.ackQ:
-				// Check for shutdown
-				if !sf.run {
-					sf.logger.Println("Write loop exiting @ _ack_q")
-					return
-				}
-
-				if latestAckNonce == nonce {
-					break
-				} else {
-					sf.logger.Printf("Got unexpected nonce: %d\n", latestAckNonce)
-				}
-			default:
+			if sf.waitingForIncomingMessage() {
+				continue
 			}
+
+			latestAckNonce := <-sf.ackQueue
+			log.Info().Msgf("nonce: %d", latestAckNonce)
+			if enqueuedMessage.nonce == latestAckNonce {
+				log.Info().Msg("Correct nonce, breaking")
+				break
+			}
+
+			log.Info().Msgf("Got unexpected nonce: %d\n", latestAckNonce)
 		}
 	}
 }
 
-func (sf *Splitflap) SetText(text string, forceMovement ForceMovement) error {
+func (sf *Splitflap) SetText(text string) error {
+	return sf.setTextWithMovement(text, ForceMovementNone)
+}
+
+func (sf *Splitflap) setTextWithMovement(text string, forceMovement ForceMovement) error {
 	// Transform text to a list of flap indexes (and pad with blanks so that all modules get updated even if text is shorter)
 	var positions []uint32
 	for _, c := range text {
@@ -266,8 +253,7 @@ func (sf *Splitflap) SetText(text string, forceMovement ForceMovement) error {
 			forceMovementList[i] = true
 		}
 	default:
-		log.Fatalf("bad value %v", forceMovement)
-		return errors.New("")
+		panic("Bad movement value")
 	}
 
 	return sf.setPositions(positions, forceMovementList)
@@ -309,45 +295,38 @@ func (sf *Splitflap) setPositions(positions []uint32, forceMovementList []bool) 
 }
 
 func (sf *Splitflap) enqueueMessage(message *sp.ToSplitflap) {
-	nonce := sf.nextNonce
+	message.Nonce = sf.nextNonce
 	sf.nextNonce++
-
-	message.Nonce = nonce
 
 	payload, err := proto.Marshal(message)
 	if err != nil {
-		sf.logger.Printf("Error marshaling message: %v\n", err)
+		log.Error().Msgf("Error marshaling message: %v\n", err)
 		return
 	}
 
-	payload = addCrc32ChecksumToPayload(payload)
-
 	newMessage := EnqueuedMessage{
-		nonce:   nonce,
-		message: payload,
+		nonce: message.Nonce,
+		bytes: utils.CreatePayloadWithCRC32Checksum(payload),
 	}
 
-	sf.outQ <- newMessage
+	sf.outQueue <- newMessage
 
-	approxQLength := len(sf.outQ)
+	approxQLength := len(sf.outQueue)
 	// TODO: handle error in some way
-	sf.logger.Printf("Out q length: %d\n", approxQLength)
+	log.Info().Msgf("Out q length: %d\n", approxQLength)
+	// log.Info().Msgf("Out q length: %d\n", approxQLength)
 	if approxQLength > 10 {
-		sf.logger.Printf("Output queue length is high! (%d) Is the splitflap still connected and functional?\n", approxQLength)
+		log.Info().Msgf("Output queue length is high! (%d) Is the splitflap still connected and functional?\n", approxQLength)
 	}
 }
 
-func addCrc32ChecksumToPayload(payload []byte) []byte {
-	crc32Hash := crc32.NewIEEE()
-	crc32Hash.Write(payload)
-	checksum := crc32Hash.Sum32()
-	byteSlice := make([]byte, 4)
-	binary.LittleEndian.PutUint32(byteSlice, checksum)
-
-	for _, b := range byteSlice {
-		payload = append(payload, b)
+func (sf *Splitflap) requestState() {
+	message := sp.ToSplitflap{}
+	message.Payload = &sp.ToSplitflap_RequestState{
+		RequestState: &sp.RequestState{},
 	}
-	return payload
+
+	sf.enqueueMessage(&message)
 }
 
 func (sf *Splitflap) alphabetIndex(c rune) uint32 {
@@ -360,39 +339,16 @@ func (sf *Splitflap) alphabetIndex(c rune) uint32 {
 	return 0 // Default to 0 if character not found in alphabet
 }
 
-func (sf *Splitflap) start() {
+func (sf *Splitflap) Start() {
 	go sf.readLoop()
 	go sf.writeLoop()
+	sf.requestState()
 }
 
-func (sf *Splitflap) shutdown() {
-	sf.logger.Println("Shutting down...")
+func (sf *Splitflap) Shutdown() {
+	log.Info().Msg("Shutting down...")
 	sf.run = false
-	sf.closeSerial()
-	close(sf.outQ)
-	close(sf.ackQ)
+	sf.serial.Close()
+	close(sf.outQueue)
+	close(sf.ackQueue)
 }
-
-// func main() {
-// 	port := flag.String("port", "", "Serial port to connect to")
-// 	verbose := flag.Bool("verbose", false, "Enable verbose logging")
-// 	flag.Parse()
-
-// 	if *port == "" {
-// 		fmt.Println("Please provide a serial port using the -port flag.")
-// 		os.Exit(1)
-// 	}
-
-// 	logLevel := log.Print
-// 	if *verbose {
-// 		logLevel = log.Println
-// 	}
-// 	sf := newSplitflap(*port, logLevel)
-// 	defer sf.shutdown()
-
-// 	sf.start()
-
-// 	// TODO: Implement the rest of the example logic
-
-// 	sf.wait()
-// }
