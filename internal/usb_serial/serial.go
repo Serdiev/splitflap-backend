@@ -85,7 +85,7 @@ func (s *Serial) Read() ([]byte, error) {
 	// _, err := s.getSerial().Read(buffer)
 
 	reader := bufio.NewReader(s.getSerial())
-	reply, err := reader.ReadBytes('0')
+	reply, err := reader.ReadBytes(byte(0))
 	if err != nil {
 		return buffer, err
 	}

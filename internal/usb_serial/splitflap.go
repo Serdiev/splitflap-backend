@@ -45,7 +45,7 @@ func NewSplitflap(serialInstance SerialConnection) *Splitflap {
 		serial:          serialInstance,
 		outQueue:        make(chan EnqueuedMessage, 100),
 		ackQueue:        make(chan uint32, 100),
-		nextNonce:       100, //uint32(rand.Intn(256)),
+		nextNonce:       101, //uint32(rand.Intn(256)),
 		run:             true,
 		messageHandlers: make(map[sp.SplitFlapType]func(interface{})),
 		currentConfig:   nil,
@@ -99,7 +99,7 @@ func (sf *Splitflap) readLoop() {
 			continue
 		}
 
-		log.Info().Msg("Got some data!")
+		log.Info().Interface("bytes", string(newBytes)).Msg("Got some data!")
 		buffer = append(buffer, newBytes...)
 
 		lastByte := buffer[len(buffer)-1]
@@ -196,7 +196,6 @@ func (sf *Splitflap) writeLoop() {
 					log.Info().Msg("Write message again")
 				}
 				writeCount++
-				log.Info().Msgf("len %d", len(enqueuedMessage.bytes))
 				log.Info().Msgf("Writing message %x", enqueuedMessage.bytes)
 				sf.serial.Write(enqueuedMessage.bytes)
 				nextRetry = time.Now().Add(RetryTime)

@@ -10,8 +10,8 @@ import (
 
 func main() {
 
-	// connection := usb_serial.NewSerialConnection()
-	connection := usb_serial.NewMockConnection()
+	connection := usb_serial.NewSerialConnection()
+	// connection := usb_serial.NewMockConnection()
 	if connection == nil {
 		log.Info().Msg("no connection")
 		return
@@ -20,7 +20,7 @@ func main() {
 	sf := usb_serial.NewSplitflap(connection)
 	sf.Start()
 	time.AfterFunc(time.Second, func() {
-		sf.SetText("d")
+		sf.SetText("u")
 	})
 	defer sf.Shutdown()
 
