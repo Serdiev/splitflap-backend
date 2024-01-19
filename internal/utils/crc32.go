@@ -34,10 +34,11 @@ func ParseCRC32EncodedPayload(data []byte) ([]byte, bool) {
 
 	decoded = decoded[:len(decoded)-1]
 
-	if len(data) < 4 {
+	if len(decoded) < 4 {
 		log.Info().Msg("< 4 bytes")
 		return []byte{}, false
 	}
+
 	payload := decoded[:len(decoded)-4]
 
 	crc32bytes := decoded[len(decoded)-4:]

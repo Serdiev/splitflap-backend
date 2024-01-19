@@ -101,6 +101,9 @@ sudo dkpg-reconfigure keyboard-configuration
 ```
 Then pick whatever keyboard/language you want.
 
+## Install make
+sudo apt install make
+
 ## Random commands:
 SSH into server 
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	config "splitflap-backend/configs"
 	"splitflap-backend/internal/sender"
 	"splitflap-backend/internal/usb_serial"
@@ -42,57 +43,29 @@ func send() {
 	sf.Start()
 	defer sf.Shutdown()
 
-	sf.SetText(sender.MapForSending(manyOf(":", 24)))
+	sf.SetText(sender.MapForSending(manyOf(" ", 24)))
 	// alphabet(sf)
+	alphabetInOrder(sf)
 
 	time.Sleep(30 * time.Second)
 }
+
 func alphabet(sf *usb_serial.Splitflap) {
+	for i := 0; i < len(sender.IndexToLetterMap); i++ {
+		randomVal := rand.Intn(40)
+		letter := sender.IndexToLetterMap[randomVal]
+		sf.SetText(sender.MapForSending(manyOf(letter, 24)))
+		fmt.Println(manyOf(letter, 24))
+		time.Sleep(10 * time.Second)
+	}
+}
+
+func alphabetInOrder(sf *usb_serial.Splitflap) {
+	time.Sleep(5 * time.Second)
 	for i := 0; i < len(sender.IndexToLetterMap); i++ {
 		letter := sender.IndexToLetterMap[i]
 		sf.SetText(sender.MapForSending(manyOf(letter, 24)))
 		fmt.Println(manyOf(letter, 24))
 		time.Sleep(1 * time.Second)
 	}
-}
-
-func sendManually() {
-
-	// c := context.Background()
-	// app := handlers.CreateService(c)
-
-	// statemachine.HandleStocksState(&app)
-
-	// a, b := ss.GetPortsList()
-	// fmt.Println(a, b)
-
-	// req := []byte{4, 8, 100, 34, 5, 47, 210, 156, 12, 0}
-	// c := &serial.Config{Name: "COM5", Baud: 230400}
-	// s, err := serial.OpenPort(c)
-
-	// if err != nil {
-	// 	fmt.Println("err")
-	// 	return
-	// }
-
-	// t, err := s.Write(req)
-	// if err != nil {
-	// 	fmt.Println("err")
-	// 	return
-	// }
-	// fmt.Println(t)
-
-	// go func() {
-	// 	for {
-	// 		buffer := []byte{}
-	// 		s.Read(buffer)
-	// 		if len(buffer) > 0 {
-	// 			fmt.Println("got something")
-	// 		}
-	// 	}
-	// }()
-
-	// time.Sleep(30 * time.Second)
-
-	// return
 }
