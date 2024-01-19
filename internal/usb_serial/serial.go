@@ -72,11 +72,11 @@ func (s *Serial) Open(portName string) error {
 }
 
 func (s *Serial) Write(data []byte) error {
-	w, err := s.getSerial().Write(data)
+	_, err := s.getSerial().Write(data)
 	if err != nil {
 		log.Error().Err(err).Msg("failed writing")
 	}
-	log.Info().Msgf("Bytes written %d", w)
+	// log.Info().Msgf("Bytes written %d", w)
 	return err
 }
 

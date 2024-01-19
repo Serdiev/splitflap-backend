@@ -2,6 +2,7 @@ package usb_serial
 
 import (
 	"errors"
+	config "splitflap-backend/configs"
 	"splitflap-backend/internal/sp"
 	"splitflap-backend/internal/utils"
 	"sync"
@@ -10,6 +11,8 @@ import (
 	"github.com/rs/zerolog/log"
 	"google.golang.org/protobuf/proto"
 )
+
+var cfg = config.New()
 
 const (
 	ForceMovementNone         ForceMovement = "none"
@@ -53,7 +56,7 @@ func NewSplitflap(serialInstance SerialConnection) *Splitflap {
 	}
 
 	// TODO: Remove later
-	s.initializeModuleList(6)
+	s.initializeModuleList(cfg.SPLITFLAP_MODULE_COUNT)
 
 	return s
 }
@@ -99,18 +102,17 @@ func (sf *Splitflap) readLoop() {
 			continue
 		}
 
-		log.Info().Interface("bytes", string(newBytes)).Msg("Got some data!")
+		// log.Info().Interface("bytes", string(newBytes)).Msg("Got some data!")
 		buffer = append(buffer, newBytes...)
 
 		lastByte := buffer[len(buffer)-1]
 		if lastByte != 0 {
 			// no data or data stream not ready
-
-			log.Info().Msg("not end of message yet")
+			// log.Info().Msg("not end of message yet")
 			continue
 		}
 
-		log.Info().Msg("got buffer values")
+		// log.Info().Msg("got buffer values")
 		sf.processFrame(buffer[:len(buffer)-1])
 		buffer = []byte{}
 	}
@@ -122,14 +124,15 @@ func (sf *Splitflap) processFrame(decoded []byte) {
 		return
 	}
 
-	log.Info().Msg("Got valid crc32")
+	// log.Info().Msg("Got valid crc32")
 	message := &sp.FromSplitflap{}
 
 	if err := proto.Unmarshal(payload, message); err != nil {
 		log.Info().Msgf("Failed to unmarshal message: %v\n", err)
 		return
 	}
-	log.Info().Msgf("Received message %v\n", message)
+	// log.Info().Msgf("Received message %v\n", message)
+	message.PrintSplitflapState()
 
 	switch message.GetPayload().(type) {
 	case *sp.FromSplitflap_Ack:
@@ -177,7 +180,7 @@ func (sf *Splitflap) writeLoop() {
 		next = time.Now().Add(time.Second * 1)
 
 		if sf.waitingForOutgoingMessage() {
-			log.Info().Msg("waiting for outgoing messages")
+			// log.Info().Msg("waiting for outgoing messages")
 			continue
 		}
 
@@ -196,7 +199,7 @@ func (sf *Splitflap) writeLoop() {
 					log.Info().Msg("Write message again")
 				}
 				writeCount++
-				log.Info().Msgf("Writing message %x", enqueuedMessage.bytes)
+				// log.Info().Msgf("Writing message %x", enqueuedMessage.bytes)
 				sf.serial.Write(enqueuedMessage.bytes)
 				nextRetry = time.Now().Add(RetryTime)
 			}
@@ -206,13 +209,13 @@ func (sf *Splitflap) writeLoop() {
 			}
 
 			latestAckNonce := <-sf.ackQueue
-			log.Info().Msgf("nonce: %d", latestAckNonce)
+			// log.Info().Msgf("nonce: %d", latestAckNonce)
 			if enqueuedMessage.nonce == latestAckNonce {
-				log.Info().Msg("Correct nonce, breaking")
+				// log.Info().Msg("Correct nonce, breaking")
 				break
 			}
 
-			log.Info().Msgf("Got unexpected nonce: %d\n", latestAckNonce)
+			// log.Info().Msgf("Got unexpected nonce: %d\n", latestAckNonce)
 		}
 	}
 }
@@ -312,7 +315,6 @@ func (sf *Splitflap) enqueueMessage(message *sp.ToSplitflap) {
 
 	approxQLength := len(sf.outQueue)
 	// TODO: handle error in some way
-	log.Info().Msgf("Out q length: %d\n", approxQLength)
 	// log.Info().Msgf("Out q length: %d\n", approxQLength)
 	if approxQLength > 10 {
 		log.Info().Msgf("Output queue length is high! (%d) Is the splitflap still connected and functional?\n", approxQLength)

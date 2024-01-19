@@ -1,5 +1,9 @@
 package sp
 
+import (
+	"fmt"
+)
+
 var (
 	SplitflapStateType  SplitFlapType = "SplitflapStateType"
 	LogType             SplitFlapType = "LogType"
@@ -23,4 +27,18 @@ func (m *FromSplitflap) GetPayloadType() SplitFlapType {
 	}
 
 	return Unknown
+}
+
+func (m *FromSplitflap) PrintSplitflapState() {
+	msg := ""
+	payloadType := m.GetPayloadType()
+	if payloadType == SplitflapStateType {
+		state := m.GetPayload().(*FromSplitflap_SplitflapState)
+		for i, module := range state.SplitflapState.GetModules() {
+			if module.GetState().String() != "NORMAL" {
+				msg += fmt.Sprintf("Index %d: %s \n", i+1, module.GetState())
+			}
+		}
+	}
+	fmt.Println(msg)
 }

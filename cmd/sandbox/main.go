@@ -2,13 +2,34 @@ package main
 
 import (
 	"fmt"
+	config "splitflap-backend/configs"
+	"splitflap-backend/internal/sender"
 	"splitflap-backend/internal/usb_serial"
 	"time"
 
 	"github.com/rs/zerolog/log"
 )
 
+var cfg = config.New()
+
 func main() {
+	// sender.AddMapping(4)
+	send()
+}
+
+func manyOf(a string, num int) string {
+	newString := ""
+	for i := 0; i < num; i++ {
+		newString += a
+	}
+	return newString
+}
+
+func teaturtle() string {
+	return "suck my ass teaturtle   "
+}
+
+func send() {
 
 	connection := usb_serial.NewSerialConnection()
 	// connection := usb_serial.NewMockConnection()
@@ -19,13 +40,20 @@ func main() {
 
 	sf := usb_serial.NewSplitflap(connection)
 	sf.Start()
-	time.AfterFunc(time.Second, func() {
-		sf.SetText("u")
-	})
 	defer sf.Shutdown()
 
+	sf.SetText(sender.MapForSending(manyOf(":", 24)))
+	// alphabet(sf)
+
 	time.Sleep(30 * time.Second)
-	fmt.Println("main finished")
+}
+func alphabet(sf *usb_serial.Splitflap) {
+	for i := 0; i < len(sender.IndexToLetterMap); i++ {
+		letter := sender.IndexToLetterMap[i]
+		sf.SetText(sender.MapForSending(manyOf(letter, 24)))
+		fmt.Println(manyOf(letter, 24))
+		time.Sleep(1 * time.Second)
+	}
 }
 
 func sendManually() {

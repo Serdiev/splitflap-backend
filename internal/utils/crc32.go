@@ -2,7 +2,6 @@ package utils
 
 import (
 	"encoding/binary"
-	"fmt"
 	"hash/crc32"
 
 	"github.com/dim13/cobs"
@@ -27,7 +26,12 @@ func CalculateCRC32(data []byte) uint32 {
 
 func ParseCRC32EncodedPayload(data []byte) ([]byte, bool) {
 	decoded := cobs.Decode(data)
-	fmt.Println(decoded)
+	// fmt.Println(decoded)
+	if len(decoded) == 0 {
+		log.Info().Msgf("Empty after decode")
+		return []byte{}, false
+	}
+
 	decoded = decoded[:len(decoded)-1]
 
 	if len(data) < 4 {

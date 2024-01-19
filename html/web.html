@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>jQuery POST Example</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        form {
+            max-width: 400px;
+            margin: 20px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 16px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+    <!-- Include jQuery library -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+</head>
+<body>
+
+<a href="http://localhost:8080/login">Spotify login</a>
+
+<form id="myForm">
+    <label for="upper">Upper:</label>
+    <input type="text" id="upper" name="upper" maxlength="12" required>
+    <label for="lower">Lower:</label>
+    <input type="text" id="lower" name="lower" maxlength="12" required>
+    <br>
+    <button type="button" onclick="sendMessage()">Send Message</button>
+</form>
+
+<script>
+    function sendMessage() {
+        var upper = padString($("#upper").val(), 12);
+        var lower = padString($("#lower").val(), 12);
+        var data = {
+            message: upper+lower
+        };
+
+        $.ajax({
+            type: "POST",
+            url: "http://localhost:8080/message", // Replace with your actual endpoint URL
+            data: JSON.stringify(data),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function(response) {
+                console.log("Message sent successfully:", response);
+                // Handle the success response here
+            },
+            error: function(error) {
+                console.error("Error sending message:", error);
+                // Handle the error response here
+            }
+        });
+    }
+
+    function padString(str, length) {
+        return (str + ' '.repeat(length)).slice(0, length);
+    }
+</script>
+
+</body>
+</html>

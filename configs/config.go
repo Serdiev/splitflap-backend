@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 
@@ -22,6 +23,8 @@ type Configuration struct {
 	ALPHA_VANTAGE_API_KEY string
 
 	SPLITFLAP_MODULE_COUNT int
+	DRIVER_COUNT           int
+	ALPHABET_OFFSET        string
 }
 
 var cfg *Configuration
@@ -35,7 +38,8 @@ func New() Configuration {
 
 	count, err := strconv.Atoi(os.Getenv("SPLITFLAP_MODULE_COUNT"))
 	if err != nil {
-		panic("need module count")
+		// panic("need module count")
+		count = 6
 	}
 
 	cfg = &Configuration{
@@ -53,6 +57,16 @@ func New() Configuration {
 
 		SPOTIFY_REDIRECT_URL:   os.Getenv("SPOTIFY_REDIRECT_URL"),
 		SPLITFLAP_MODULE_COUNT: count,
+		DRIVER_COUNT:           count / 6,
+		ALPHABET_OFFSET:        os.Getenv("ALPHABET_OFFSET_UPPER") + os.Getenv("ALPHABET_OFFSET_LOWER"),
+	}
+	// fmt.Println(os.Getenv("ALPHABET_OFFSET_UPPER"))
+	// fmt.Println(os.Getenv("ALPHABET_OFFSET_LOWER"))
+	// fmt.Println(cfg.ALPHABET_OFFSET)
+
+	if len(cfg.ALPHABET_OFFSET) != cfg.SPLITFLAP_MODULE_COUNT {
+		fmt.Println(cfg.ALPHABET_OFFSET, cfg.SPLITFLAP_MODULE_COUNT)
+		panic("uh oh")
 	}
 
 	return *cfg
