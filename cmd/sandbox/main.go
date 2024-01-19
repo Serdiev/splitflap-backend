@@ -43,10 +43,10 @@ func send() {
 	sf.Start()
 	defer sf.Shutdown()
 
-	sf.Calibrate()
-	// sf.SetText(sender.MapForSending(manyOf(" ", 24)))
+	// sf.Calibrate()
+	sf.SetText(sender.MapForSending(manyOf(" ", 24)))
 	// // alphabet(sf)
-	// alphabetInOrder(sf)
+	alphabetInOrder(sf)
 
 	time.Sleep(30 * time.Second)
 }
@@ -67,6 +67,6 @@ func alphabetInOrder(sf *usb_serial.Splitflap) {
 		letter := sender.IndexToLetterMap[i]
 		sf.SetText(sender.MapForSending(manyOf(letter, 24)))
 		fmt.Println(manyOf(letter, 24))
-		time.Sleep(1 * time.Second)
+		time.Sleep(2 * time.Second)
 	}
 }

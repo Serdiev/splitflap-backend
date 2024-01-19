@@ -115,7 +115,8 @@ func createWireMapping() map[int]int {
 	return inverted
 }
 
-func createLetterToIndexMap() (m map[string]int) {
+func createLetterToIndexMap() map[string]int {
+	m := map[string]int{}
 	for i, v := range cfg.ALPHABET_CUSTOM_ORDER {
 		letter := string(v)
 		m[letter] = i
@@ -123,7 +124,8 @@ func createLetterToIndexMap() (m map[string]int) {
 	return m
 }
 
-func createIndexToLetterMap() (m map[int]string) {
+func createIndexToLetterMap() map[string]int {
+	m := map[string]int{}
 	for i, v := range cfg.ALPHABET_CUSTOM_ORDER {
 		letter := string(v)
 		m[i] = letter
