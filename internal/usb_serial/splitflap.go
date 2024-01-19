@@ -220,6 +220,10 @@ func (sf *Splitflap) writeLoop() {
 	}
 }
 
+func (sf *Splitflap) Calibrate() {
+	sf.serial.Write([]byte("@"))
+}
+
 func (sf *Splitflap) SetText(text string) error {
 	return sf.setTextWithMovement(text, ForceMovementNone)
 }

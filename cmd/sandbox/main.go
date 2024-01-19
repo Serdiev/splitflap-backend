@@ -43,9 +43,10 @@ func send() {
 	sf.Start()
 	defer sf.Shutdown()
 
-	sf.SetText(sender.MapForSending(manyOf(" ", 24)))
-	// alphabet(sf)
-	alphabetInOrder(sf)
+	sf.Calibrate()
+	// sf.SetText(sender.MapForSending(manyOf(" ", 24)))
+	// // alphabet(sf)
+	// alphabetInOrder(sf)
 
 	time.Sleep(30 * time.Second)
 }
