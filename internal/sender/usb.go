@@ -124,8 +124,8 @@ func createLetterToIndexMap() map[string]int {
 	return m
 }
 
-func createIndexToLetterMap() map[string]int {
-	m := map[string]int{}
+func createIndexToLetterMap() map[int]string {
+	m := map[int]string{}
 	for i, v := range cfg.ALPHABET_CUSTOM_ORDER {
 		letter := string(v)
 		m[i] = letter
