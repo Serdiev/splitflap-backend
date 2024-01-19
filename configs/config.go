@@ -25,6 +25,7 @@ type Configuration struct {
 	SPLITFLAP_MODULE_COUNT int
 	DRIVER_COUNT           int
 	ALPHABET_OFFSET        string
+	ALPHABET_CUSTOM_ORDER  string
 }
 
 var cfg *Configuration
@@ -59,6 +60,7 @@ func New() Configuration {
 		SPLITFLAP_MODULE_COUNT: count,
 		DRIVER_COUNT:           count / 6,
 		ALPHABET_OFFSET:        os.Getenv("ALPHABET_OFFSET_UPPER") + os.Getenv("ALPHABET_OFFSET_LOWER"),
+		ALPHABET_CUSTOM_ORDER:  os.Getenv("ALPHABET_CUSTOM_ORDER"),
 	}
 	// fmt.Println(os.Getenv("ALPHABET_OFFSET_UPPER"))
 	// fmt.Println(os.Getenv("ALPHABET_OFFSET_LOWER"))

@@ -1,5 +1,9 @@
 package sender
 
+var LetterToIndexMap = createLetterToIndexMap()
+var IndexToLetterMap = createIndexToLetterMap()
+var wireMapping = createWireMapping()
+
 // 40 letters.
 // Maps a letter from my own format to standard format in SplitFlap Arduino code.
 var splitflapMapping = map[string]string{
@@ -73,9 +77,7 @@ var lower = []int{1, 0, 2}
 // 	12: 12, 13: 13, 14: 14, 15: 15, 16: 16, 17: 17, 18: 18, 19: 19, 20: 20, 21: 21, 22: 22, 23: 23,
 // }
 
-var wireMapping = AddMapping()
-
-func AddMapping() map[int]int {
+func createWireMapping() map[int]int {
 	mapping := map[int]int{}
 	mapping[23] = 0
 	mapping[11] = 1
@@ -113,6 +115,22 @@ func AddMapping() map[int]int {
 	return inverted
 }
 
+func createLetterToIndexMap() (m map[string]int) {
+	for i, v := range cfg.ALPHABET_CUSTOM_ORDER {
+		letter := string(v)
+		m[letter] = i
+	}
+	return m
+}
+
+func createIndexToLetterMap() (m map[int]string) {
+	for i, v := range cfg.ALPHABET_CUSTOM_ORDER {
+		letter := string(v)
+		m[i] = letter
+	}
+	return m
+}
+
 type SerialSender struct {
 }
 
@@ -146,100 +164,14 @@ func AdjustWireMapping(text string) string {
 	return newMsg
 }
 
-var letterToIndexMap = map[string]int{
-	" ": 0,
-	"a": 1,
-	"b": 2,
-	"c": 3,
-	"d": 4,
-	"e": 5,
-	"f": 6,
-	"g": 7,
-	"h": 8,
-	"i": 9,
-	"j": 10,
-	"k": 11,
-	"l": 12,
-	"m": 13,
-	"n": 14,
-	"p": 15,
-	"q": 16,
-	"r": 17,
-	"s": 18,
-	"t": 19,
-	"u": 20,
-	"v": 21,
-	"w": 22,
-	"x": 23,
-	"y": 24,
-	"0": 25,
-	"1": 26,
-	"2": 27,
-	"3": 28,
-	"4": 29,
-	"5": 30,
-	"6": 31,
-	"7": 32,
-	"8": 33,
-	"9": 34,
-	"%": 35,
-	"+": 36,
-	"-": 37,
-	",": 38,
-	":": 39,
-}
-
-var IndexToLetterMap = map[int]string{
-	0:  " ",
-	1:  "a",
-	2:  "b",
-	3:  "c",
-	4:  "d",
-	5:  "e",
-	6:  "f",
-	7:  "g",
-	8:  "h",
-	9:  "i",
-	10: "j",
-	11: "k",
-	12: "l",
-	13: "m",
-	14: "n",
-	15: "p",
-	16: "q",
-	17: "r",
-	18: "s",
-	19: "t",
-	20: "u",
-	21: "v",
-	22: "w",
-	23: "x",
-	24: "y",
-	25: "0",
-	26: "1",
-	27: "2",
-	28: "3",
-	29: "4",
-	30: "5",
-	31: "6",
-	32: "7",
-	33: "8",
-	34: "9",
-	35: "%",
-	36: "+",
-	37: "-",
-	38: ",",
-	39: ":",
-}
-
 // adjust offset
 func SpoolOffsetMapping(text string) string {
 	newText := ""
 
 	for i := 0; i < len(text); i++ {
 		letterOffset := string(cfg.ALPHABET_OFFSET[i])
-		offset := letterToIndexMap[letterOffset]
-		currentIndex := letterToIndexMap[string(text[i])]
+		offset := LetterToIndexMap[letterOffset]
+		currentIndex := LetterToIndexMap[string(text[i])]
 		adjustedIndex := (40 + currentIndex - offset) % 40
 
 		newText += IndexToLetterMap[adjustedIndex]
@@ -248,6 +180,7 @@ func SpoolOffsetMapping(text string) string {
 	return newText
 }
 
+// will convert custom letters to the default
 func MapToArduinoLetters(text string) string {
 	newText := ""
 	for i := 0; i < len(text); i++ {
