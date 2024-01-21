@@ -1,71 +1,43 @@
 package sender
 
+import (
+	"fmt"
+	"splitflap-backend/internal/usb_serial"
+
+	"github.com/rs/zerolog/log"
+)
+
 var LetterToIndexMap = createLetterToIndexMap()
 var IndexToLetterMap = createIndexToLetterMap()
 var wireMapping = createWireMapping()
+var customToArduinoMapping = createArduinoMap()
 
-// 40 letters.
-// Maps a letter from my own format to standard format in SplitFlap Arduino code.
-var splitflapMapping = map[string]string{
-	" ": " ",
-	"a": "a",
-	"b": "b",
-	"c": "c",
-	"d": "d",
-	"e": "e",
-	"f": "f",
-	"g": "g",
-	"h": "h",
-	"i": "i",
-	"j": "j",
-	"k": "k",
-	"l": "l",
-	"m": "m",
-	"n": "n",
-	"p": "o",
-	"q": "p",
-	"r": "q",
-	"s": "r",
-	"t": "s",
-	"u": "t",
-	"v": "u",
-	"w": "v",
-	"x": "w",
-	"y": "x",
-	"0": "y",
-	"1": "z",
-	"2": "0",
-	"3": "1",
-	"4": "2",
-	"5": "3",
-	"6": "4",
-	"7": "5",
-	"8": "6",
-	"9": "7",
-	"%": "8",
-	"+": "9",
-	"-": ".",
-	",": ",",
-	":": "'",
-	// extra
-	"o": "0",
-	"z": "s",
-	"å": "a",
-	"ä": "a",
-	"ö": "o",
+func createArduinoMap() map[string]string {
+	m := map[string]string{}
+	for i := 0; i < len(cfg.ALPHABET_CUSTOM_ORDER); i++ {
+		m[string(cfg.ALPHABET_CUSTOM_ORDER[i])] = string(cfg.ALPHABET_ARDUIN_ORDER[i])
+	}
+
+	m["o"] = m["0"]
+	fmt.Println(m["o"], m["0"])
+	m["z"] = m["s"]
+	m["å"] = m["a"]
+	m["ä"] = m["a"]
+	m["ö"] = m["o"]
+	return m
 }
 
 // Read as from row 0-11 then 12-23 (left to right)
 // var flapSpoolOffsets = "::::  "
 
 // key -> driver index
-var singleMapping = map[int]int{
-	0: 5, 1: 3, 2: 4,
-	3: 1, 4: 0, 5: 2,
-}
+// var singleMapping = map[int]int{
+// 	0: 5, 1: 3, 2: 4,
+// 	3: 1, 4: 0, 5: 2,
+// }
 
-var upper = []int{5, 4, 3}
-var lower = []int{1, 0, 2}
+// var upper = []int{5, 4, 3}
+// var lower = []int{1, 0, 2}
 
 // var wireMapping = map[int]int{
 // 	0: 22, 1: 21, 2: 19, 3: 16, 4: 15, 5: 13, 6: 10, 7: 9, 8: 7, 9: 4, 10: 3, 11: 1,
@@ -133,23 +105,43 @@ func createIndexToLetterMap() map[int]string {
 	return m
 }
 
-type SerialSender struct {
+type UsbSerialSender struct {
+	sf          *usb_serial.Splitflap
+	CurrentText string
 }
 
-func NewSerialSender() *SerialSender {
-	return &SerialSender{}
+func NewUsbSerialSender() *UsbSerialSender {
+	connection := usb_serial.NewSerialConnection()
+	if connection == nil {
+		log.Error().Msg("Could not create USB serial connection")
+		return NewNoopSerialSender()
+	}
+
+	sf := usb_serial.NewSplitflap(connection)
+	sf.Start()
+
+	return &UsbSerialSender{
+		sf:          sf,
+		CurrentText: "",
+	}
 }
 
 // SendMessage sends the given text over the serial usb
-func (m *SerialSender) SendMessage(text string) error {
-	alteredMessage := AdjustWireMapping(text)
-	alteredMessage = SpoolOffsetMapping(alteredMessage)
+func (m *UsbSerialSender) SendMessage(text string) error {
+	if m.CurrentText == text {
+		return nil
+	}
 
+	m.CurrentText = text
+
+	fmt.Println(text)
+	m.sf.SetText(MapForSending(text))
 	return nil
 }
 
 func MapForSending(s string) string {
-	output := SpoolOffsetMapping(s)
+	output := s
+	output = SpoolOffsetMapping(output)
 	output = AdjustWireMapping(output)
 	output = MapToArduinoLetters(output)
 	return output
@@ -157,18 +149,18 @@ func MapForSending(s string) string {
 
 // adjust wiring (order on drivers => text in order)
 func AdjustWireMapping(text string) string {
-	newMsg := ""
+	output := ""
 	for i := 0; i < len(wireMapping); i++ {
 		mapIndex := wireMapping[i]
-		newMsg += string(text[mapIndex])
+		output += string(text[mapIndex])
 	}
 
-	return newMsg
+	return output
 }
 
 // adjust offset
 func SpoolOffsetMapping(text string) string {
-	newText := ""
+	output := ""
 
 	for i := 0; i < len(text); i++ {
 		letterOffset := string(cfg.ALPHABET_OFFSET[i])
@@ -176,18 +168,18 @@ func SpoolOffsetMapping(text string) string {
 		currentIndex := LetterToIndexMap[string(text[i])]
 		adjustedIndex := (40 + currentIndex - offset) % 40
 
-		newText += IndexToLetterMap[adjustedIndex]
+		output += IndexToLetterMap[adjustedIndex]
 	}
 
-	return newText
+	return output
 }
 
-// will convert custom letters to the default
+// will convert custom letters to the ESP32 "order"
 func MapToArduinoLetters(text string) string {
-	newText := ""
+	output := ""
 	for i := 0; i < len(text); i++ {
-		newText += splitflapMapping[string(text[i])]
+		output += customToArduinoMapping[string(text[i])]
 	}
 
-	return newText
+	return output
 }

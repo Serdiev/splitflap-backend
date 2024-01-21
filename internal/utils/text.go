@@ -2,30 +2,22 @@ package utils
 
 import "strings"
 
-var DEFAULT_ALPHABET = []rune{
-	' ', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
-	'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-	'.', ',', '\'',
-}
+var ROW_LENGTH = 12
 
 type TextHelper struct {
-	upper     string
-	lower     string
-	rowLength int
+	upper string
+	lower string
 }
 
 func NewText() TextHelper {
-	rowLength := 12
 	return TextHelper{
-		upper:     strings.Repeat(" ", rowLength),
-		lower:     strings.Repeat(" ", rowLength),
-		rowLength: rowLength,
+		upper: strings.Repeat(" ", ROW_LENGTH),
+		lower: strings.Repeat(" ", ROW_LENGTH),
 	}
 }
 
 func (t *TextHelper) GetText() string {
-	return t.upper + t.lower
+	return strings.ToLower(t.upper + t.lower)
 }
 
 func (t *TextHelper) TopLeft(text string) {
@@ -46,8 +38,8 @@ func (t *TextHelper) BottomRight(text string) {
 
 func (t *TextHelper) BeginWith(currentText string, text string) string {
 	textLength := len(text)
-	if textLength > t.rowLength {
-		textLength = 12
+	if textLength > ROW_LENGTH {
+		textLength = ROW_LENGTH
 	}
 
 	newText := []byte(currentText)
@@ -60,13 +52,13 @@ func (t *TextHelper) BeginWith(currentText string, text string) string {
 
 func (t *TextHelper) EndWith(currentText string, text string) string {
 	textLength := len(text)
-	if textLength > t.rowLength {
-		textLength = 12
+	if textLength > ROW_LENGTH {
+		textLength = ROW_LENGTH
 	}
 
 	newText := []byte(currentText)
 	for i := textLength - 1; i >= 0; i-- {
-		newText[t.rowLength-textLength+i] = text[i]
+		newText[ROW_LENGTH-textLength+i] = text[i]
 	}
 
 	return string(newText)

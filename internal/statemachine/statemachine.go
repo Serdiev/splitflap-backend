@@ -2,53 +2,56 @@ package statemachine
 
 import (
 	"fmt"
-	config "splitflap-backend/configs"
 	h "splitflap-backend/internal/handlers"
+	"splitflap-backend/internal/utils"
 	"time"
 )
 
-var cfg = config.New()
+var stateHandlers = map[h.DisplayState]func(*h.Application) bool{
+	h.Idle:    idleState,
+	h.Spotify: handleSpotifyState,
+}
 
 func Initiate(app *h.Application) {
-	tick := 0
 	ticker := time.NewTicker(time.Second)
 	for range ticker.C {
-		switch app.State {
-		case h.Idle:
-			idleState(tick, app)
-			break
-		case h.Stocks:
-			// stockStateHandler will go through all the stocks setup in TRACKED_STOCKS
-			break
-		case h.Spotify:
+		busy := stateHandlers[app.State](app)
+
+		if !busy {
 			handleSpotifyState(app)
-			break
 		}
 	}
-
 }
 
-func idleState(tick int, app *h.Application) {
-	tick = (tick + 1) % 10
-
-	// only check if we should swap to spotifyState every 10 seconds
-	if tick != 0 {
-		return
-	}
-
-	if handleSpotifyState(app) {
-		return
-	}
+func idleState(app *h.Application) bool {
+	return false
 }
+
+var lastCheckedSpotify = time.Now()
 
 func handleSpotifyState(app *h.Application) bool {
+	if !app.Spotify.IsLoggedIn() {
+		return false
+	}
+
+	if time.Since(lastCheckedSpotify) < time.Second*5 {
+		return true
+	}
+
+	lastCheckedSpotify = time.Now()
+
+	fmt.Println("checking")
 	playing, _ := app.Spotify.GetCurrentlyPlaying()
+	fmt.Println(playing)
 	if playing == nil {
 		app.ResetSplitFlapState()
 		return false
 	}
 
-	app.SetSplitflapText("")
+	text := utils.NewText()
+	text.TopLeft(playing.Song)
+	text.BottomLeft(playing.Artist)
+	app.Sender.SendMessage(text.GetText())
 	app.SetState(h.Spotify)
 	return true
 }

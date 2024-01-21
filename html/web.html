@@ -60,7 +60,7 @@
 </head>
 <body>
 
-<a href="http://localhost:8080/login">Spotify login</a>
+<a href="/login">Spotify login</a>
 
 <form id="myForm">
     <label for="upper">Upper:</label>
@@ -81,7 +81,7 @@
 
         $.ajax({
             type: "POST",
-            url: "http://localhost:8080/message", // Replace with your actual endpoint URL
+            url: "/message", // Replace with your actual endpoint URL
             data: JSON.stringify(data),
             contentType: "application/json; charset=utf-8",
             dataType: "json",

@@ -5,6 +5,7 @@ import (
 	config "splitflap-backend/configs"
 	"splitflap-backend/internal/handlers"
 	"splitflap-backend/internal/routes"
+	"splitflap-backend/internal/statemachine"
 )
 
 var cfg = config.New()
@@ -16,7 +17,7 @@ func main() {
 
 	r := routes.SetupRouting(&app)
 
-	// go statemachine.Initiate(&app)
+	go statemachine.Initiate(&app)
 
 	r.Run(":8080")
 }

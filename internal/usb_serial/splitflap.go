@@ -2,6 +2,8 @@ package usb_serial
 
 import (
 	"errors"
+	"fmt"
+	"math/rand"
 	config "splitflap-backend/configs"
 	"splitflap-backend/internal/sp"
 	"splitflap-backend/internal/utils"
@@ -44,15 +46,22 @@ type Splitflap struct {
 type forceMovementFunc func(rune) bool
 
 func NewSplitflap(serialInstance SerialConnection) *Splitflap {
+	alphabet := []rune{}
+	for _, v := range cfg.ALPHABET_ARDUIN_ORDER {
+		alphabet = append(alphabet, v)
+	}
+
+	fmt.Println(alphabet)
+
 	s := &Splitflap{
 		serial:          serialInstance,
 		outQueue:        make(chan EnqueuedMessage, 100),
 		ackQueue:        make(chan uint32, 100),
-		nextNonce:       101, //uint32(rand.Intn(256)),
+		nextNonce:       uint32(rand.Intn(256)),
 		run:             true,
 		messageHandlers: make(map[sp.SplitFlapType]func(interface{})),
 		currentConfig:   nil,
-		alphabet:        utils.DEFAULT_ALPHABET,
+		alphabet:        alphabet,
 	}
 
 	// TODO: Remove later
@@ -80,17 +89,17 @@ func (sf *Splitflap) initializeModuleList(moduleCount int) {
 func (sf *Splitflap) readLoop() {
 	log.Info().Msg("Read loop started")
 	buffer := []byte{}
-	next := time.Now()
+	// next := time.Now()
 	for {
 		if !sf.run {
 			return
 		}
 
 		// TODO: remove
-		if time.Now().Before(next) {
-			continue
-		}
-		next = time.Now().Add(time.Second * 1)
+		// if time.Now().Before(next) {
+		// 	continue
+		// }
+		// next = time.Now().Add(time.Second * 1)
 
 		newBytes, err := sf.serial.Read()
 		if err != nil {
@@ -166,18 +175,11 @@ func (sf *Splitflap) waitingForIncomingMessage() bool {
 func (sf *Splitflap) writeLoop() {
 	log.Info().Msg("Write loop started")
 
-	next := time.Now()
 	for {
 		if !sf.run {
 			log.Info().Msg("Stop running, exiting write loop")
 			return
 		}
-
-		// TODO: remove
-		if time.Now().Before(next) {
-			continue
-		}
-		next = time.Now().Add(time.Second * 1)
 
 		if sf.waitingForOutgoingMessage() {
 			// log.Info().Msg("waiting for outgoing messages")

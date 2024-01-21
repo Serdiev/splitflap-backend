@@ -15,7 +15,11 @@ var cfg = config.New()
 
 func main() {
 	// sender.AddMapping(4)
-	send()
+
+	fmt.Println(sender.MapForSending(" utro" + manyOf(" ", 19)))
+	// send()
+
+	// slider()
 }
 
 func manyOf(a string, num int) string {
@@ -24,10 +28,6 @@ func manyOf(a string, num int) string {
 		newString += a
 	}
 	return newString
-}
-
-func teaturtle() string {
-	return "suck my ass teaturtle   "
 }
 
 func send() {
@@ -45,10 +45,35 @@ func send() {
 
 	// sf.Calibrate()
 	sf.SetText(sender.MapForSending(manyOf(" ", 24)))
+	// time.Sleep(5 * time.Second)
+	// sf.SetText(sender.MapForSending(teaturtle()))
 	// // alphabet(sf)
-	alphabetInOrder(sf)
+	// alphabetInOrder(sf)
 
 	time.Sleep(30 * time.Second)
+}
+
+func slider() {
+	for i := 0; i < 100; i++ {
+		// time.Sleep(5 * time.Second)
+		fmt.Println(s(i))
+		// sf.SetText(sender.MapForSending(teaturtle()))
+	}
+}
+
+func s(percentage int) string {
+	pct := percentage
+	if percentage > 100 {
+		pct = 100
+	} else if percentage <= 0 {
+		pct = 1
+	}
+
+	passed := 0
+	left := 10 * (float32(pct) / 100)
+
+	msg := fmt.Sprintf("i%s%si", manyOf("%", int(left)), manyOf("%", 10-passed))
+	return msg
 }
 
 func alphabet(sf *usb_serial.Splitflap) {

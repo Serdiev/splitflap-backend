@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"net/http"
 	config "splitflap-backend/configs"
 	"splitflap-backend/internal/handlers"
@@ -25,7 +26,7 @@ func SetupRouting(a *handlers.Application) *gin.Engine {
 		responseType := c.DefaultQuery("response_type", "code")
 		clientID := c.DefaultQuery("client_id", cfg.SPOTIFY_CLIENT_ID)
 		scope := c.DefaultQuery("scope", "user-read-currently-playing")
-		redirectURI := c.DefaultQuery("redirect_uri", "http://localhost:8080/callback")
+		redirectURI := c.DefaultQuery("redirect_uri", cfg.SPOTIFY_REDIRECT_URL)
 
 		// Construct the redirect URL
 		redirectURL := "https://accounts.spotify.com/authorize?" +
@@ -46,10 +47,15 @@ func SetupRouting(a *handlers.Application) *gin.Engine {
 	// host webpage to interact
 	r.LoadHTMLGlob("html/*.html")
 	r.GET("/home", func(c *gin.Context) {
+		fmt.Println("hello")
 		c.HTML(http.StatusOK, "web.html", gin.H{
 			"title": "Welcome to the Home Page",
 		})
 	})
+	r.GET("/test", func(c *gin.Context) {
+		fmt.Println("test")
+	})
+	fmt.Println("hello finisehd this")
 
 	return r
 }

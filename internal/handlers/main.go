@@ -25,8 +25,8 @@ const (
 func CreateService(c context.Context) Application {
 	return Application{
 		Context: c,
-		sender:  sender.NewSerialSender(),
-		Spotify: spotify.NewNoopSpotifyClient(),
+		Sender:  sender.NewUsbSerialSender(),
+		Spotify: spotify.NewNoopSpotifyClient(), // replacing unusable client once we login to spotify
 		Stocks:  stocks.NewAvanzaClient(),
 		State:   Idle,
 	}
@@ -34,7 +34,7 @@ func CreateService(c context.Context) Application {
 
 type Application struct {
 	Context context.Context
-	sender  MessageSender
+	Sender  MessageSender
 	Spotify SpotifyClient
 	Stocks  StocksClient
 	State   DisplayState
@@ -63,7 +63,7 @@ func (a *Application) SetSplitflapText(text string) error {
 		preparedText += strings.Repeat(" ", -1*diff)
 	}
 
-	return a.sender.SendMessage(preparedText)
+	return a.Sender.SendMessage(preparedText)
 }
 
 // Sets text with correct length (inserting spaces or truncating)
@@ -74,5 +74,5 @@ func (a *Application) SetState(state DisplayState) {
 // Sets mode to idle and sets text to empty
 func (a *Application) ResetSplitFlapState() {
 	a.State = Idle
-	a.sender.SendMessage(strings.Repeat(" ", cfg.SPLITFLAP_MODULE_COUNT))
+	a.Sender.SendMessage(strings.Repeat(" ", cfg.SPLITFLAP_MODULE_COUNT))
 }
