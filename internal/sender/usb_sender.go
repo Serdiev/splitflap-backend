@@ -3,6 +3,7 @@ package sender
 import (
 	"fmt"
 	"splitflap-backend/internal/usb_serial"
+	"strings"
 
 	"github.com/rs/zerolog/log"
 )
@@ -18,12 +19,6 @@ func createArduinoMap() map[string]string {
 		m[string(cfg.ALPHABET_CUSTOM_ORDER[i])] = string(cfg.ALPHABET_ARDUIN_ORDER[i])
 	}
 
-	m["o"] = m["0"]
-	fmt.Println(m["o"], m["0"])
-	m["z"] = m["s"]
-	m["å"] = m["a"]
-	m["ä"] = m["a"]
-	m["ö"] = m["o"]
 	return m
 }
 
@@ -141,9 +136,20 @@ func (m *UsbSerialSender) SendMessage(text string) error {
 
 func MapForSending(s string) string {
 	output := s
+	output = ReplaceDisallowedLetters(output)
 	output = SpoolOffsetMapping(output)
 	output = AdjustWireMapping(output)
 	output = MapToArduinoLetters(output)
+	return output
+}
+
+func ReplaceDisallowedLetters(s string) string {
+	output := s
+	output = strings.ReplaceAll(output, "o", "0")
+	output = strings.ReplaceAll(output, "z", "s")
+	output = strings.ReplaceAll(output, "å", "a")
+	output = strings.ReplaceAll(output, "ä", "a")
+	output = strings.ReplaceAll(output, "ö", "o")
 	return output
 }
 

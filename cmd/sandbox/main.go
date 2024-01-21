@@ -16,8 +16,8 @@ var cfg = config.New()
 func main() {
 	// sender.AddMapping(4)
 
-	fmt.Println(sender.MapForSending(" utro" + manyOf(" ", 19)))
-	// send()
+	// fmt.Println(sender.MapForSending(" utro" + manyOf(" ", 19)))
+	send()
 
 	// slider()
 }
