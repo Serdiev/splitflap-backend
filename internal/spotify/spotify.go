@@ -75,13 +75,18 @@ func (sc SpotifyClient) GetCurrentlyPlaying() (*models.SpotifyIsPlaying, error) 
 }
 
 func mapToDto(resp SpotifyResponse) *models.SpotifyIsPlaying {
-	secondsLeft := int((resp.Item.DurationMS - resp.ProgressMS) / 1000)
+	secondsLeft := asSeconds(resp.Item.DurationMS - resp.ProgressMS)
 	return &models.SpotifyIsPlaying{
 		Song:        resp.Item.Name,
 		Artist:      resp.Item.Artists[0].Name,
+		ProgressMs:  asSeconds(resp.ProgressMS),
+		DurationMs:  asSeconds(resp.Item.DurationMS),
 		SecondsLeft: secondsLeft,
 		TimeLeft:    formatSecondsToMMSS(secondsLeft),
 	}
+}
+func asSeconds(ms int64) int {
+	return int(ms / 1000)
 }
 
 func formatSecondsToMMSS(seconds int) string {

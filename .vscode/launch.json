@@ -10,7 +10,8 @@
       "request": "launch",
       "mode": "auto",
       "program": "cmd/sandbox/main.go",
-      "envFile": "${workspaceFolder}/.env"
+      "envFile": "${workspaceFolder}/.env",
+      "cwd" : "${workspaceFolder}"
     },
     {
       "name": "Debug main",
@@ -18,7 +19,8 @@
       "request": "launch",
       "mode": "auto",
       "program": "cmd/splitflap/main.go",
-      "envFile": "${workspaceFolder}/.env"
+      "envFile": "${workspaceFolder}/.env",
+      "cwd" : "${workspaceFolder}"
     }
   ]
 }

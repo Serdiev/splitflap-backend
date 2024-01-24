@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	config "splitflap-backend/configs"
 	"splitflap-backend/internal/sender"
+	"splitflap-backend/internal/statemachine"
 	"splitflap-backend/internal/usb_serial"
 	"strings"
 	"time"
@@ -18,9 +19,14 @@ func main() {
 	// sender.AddMapping(4)
 
 	// fmt.Println(sender.MapForSending(" utro" + manyOf(" ", 19)))
-	send()
+	// send()
 
 	// slider()
+	fmt.Println(statemachine.BottomSlider(0))
+	fmt.Println(statemachine.BottomSlider(25))
+	fmt.Println(statemachine.BottomSlider(50))
+	fmt.Println(statemachine.BottomSlider(75))
+	fmt.Println(statemachine.BottomSlider(100))
 }
 
 func manyOf(a string, num int) string {
