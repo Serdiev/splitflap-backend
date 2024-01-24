@@ -25,11 +25,16 @@ type SpotifyClient interface {
 func (a *Application) LoginCallback(c *gin.Context) {
 	code := c.Query("code")
 	if code == "" {
-		c.JSON(http.StatusOK, "could not login, did not receive code")
+		// c.JSON(http.StatusOK, "could not login, did not receive code")
+		c.Redirect(307, "/home")
 		return
 	}
 
 	auth := GetInitialAccessToken(code)
+	if auth == nil {
+		c.Redirect(307, "/home")
+		return
+	}
 
 	tokenSource := CreateSpotifyTokenSource(*auth)
 
@@ -37,7 +42,7 @@ func (a *Application) LoginCallback(c *gin.Context) {
 	client := oauth2.NewClient(c, tokenSrc)
 	a.Spotify = spotify.NewSpotifyClient(client)
 
-	c.JSON(http.StatusOK, "logged in")
+	c.Redirect(307, "/home?message=logged_in")
 }
 
 func GetInitialAccessToken(code string) *oauth2.Token {
@@ -68,8 +73,11 @@ func GetInitialAccessToken(code string) *oauth2.Token {
 	defer resp.Body.Close()
 
 	respBody, err := io.ReadAll(resp.Body)
-	fmt.Println(string(respBody))
+	if err != nil {
+		return nil
+	}
 
+	fmt.Println(string(respBody))
 	// Check the response status code
 	if resp.StatusCode != http.StatusOK {
 		fmt.Println("Request failed with status code:", resp.StatusCode)

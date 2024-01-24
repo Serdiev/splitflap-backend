@@ -6,6 +6,7 @@ import (
 	config "splitflap-backend/configs"
 	"splitflap-backend/internal/sender"
 	"splitflap-backend/internal/usb_serial"
+	"strings"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -44,36 +45,16 @@ func send() {
 	defer sf.Shutdown()
 
 	// sf.Calibrate()
-	sf.SetText(sender.MapForSending(manyOf(" ", 24)))
+	// sf.SetText(sender.MapForSending("ready or notfugees      "))
+	sf.SetText(sender.MapForSending(strings.Repeat(" ", 24)))
+	// sf.SetText(sender.MapForSending(manyOf(" ", 24)))
+	// sf.SetText(sender.MapForSending(manyOf(" ", 24)))
 	// time.Sleep(5 * time.Second)
 	// sf.SetText(sender.MapForSending(teaturtle()))
 	// // alphabet(sf)
 	// alphabetInOrder(sf)
 
 	time.Sleep(30 * time.Second)
-}
-
-func slider() {
-	for i := 0; i < 100; i++ {
-		// time.Sleep(5 * time.Second)
-		fmt.Println(s(i))
-		// sf.SetText(sender.MapForSending(teaturtle()))
-	}
-}
-
-func s(percentage int) string {
-	pct := percentage
-	if percentage > 100 {
-		pct = 100
-	} else if percentage <= 0 {
-		pct = 1
-	}
-
-	passed := 0
-	left := 10 * (float32(pct) / 100)
-
-	msg := fmt.Sprintf("i%s%si", manyOf("%", int(left)), manyOf("%", 10-passed))
-	return msg
 }
 
 func alphabet(sf *usb_serial.Splitflap) {

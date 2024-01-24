@@ -25,7 +25,7 @@ const (
 func CreateService(c context.Context) Application {
 	return Application{
 		Context: c,
-		Sender:  sender.NewUsbSerialSender(),
+		Sender:  GetSender(),
 		Spotify: spotify.NewNoopSpotifyClient(), // replacing unusable client once we login to spotify
 		Stocks:  stocks.NewAvanzaClient(),
 		State:   Idle,
@@ -38,6 +38,15 @@ type Application struct {
 	Spotify SpotifyClient
 	Stocks  StocksClient
 	State   DisplayState
+}
+
+func GetSender() MessageSender {
+	usbSender := sender.NewUsbSerialSender()
+	if usbSender != nil {
+		return usbSender
+	}
+
+	return sender.NewNoopSender()
 }
 
 type MessageSender interface {
@@ -72,7 +81,12 @@ func (a *Application) SetState(state DisplayState) {
 }
 
 // Sets mode to idle and sets text to empty
-func (a *Application) ResetSplitFlapState() {
+func (a *Application) SetToIdleState() {
 	a.State = Idle
 	a.Sender.SendMessage(strings.Repeat(" ", cfg.SPLITFLAP_MODULE_COUNT))
+}
+
+// Sets text with correct length (inserting spaces or truncating)
+func (a *Application) IsIdleState() bool {
+	return a.State == Idle
 }

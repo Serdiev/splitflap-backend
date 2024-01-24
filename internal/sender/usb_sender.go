@@ -109,7 +109,7 @@ func NewUsbSerialSender() *UsbSerialSender {
 	connection := usb_serial.NewSerialConnection()
 	if connection == nil {
 		log.Error().Msg("Could not create USB serial connection")
-		return NewNoopSerialSender()
+		return nil
 	}
 
 	sf := usb_serial.NewSplitflap(connection)
@@ -129,7 +129,8 @@ func (m *UsbSerialSender) SendMessage(text string) error {
 
 	m.CurrentText = text
 
-	fmt.Println(text)
+	fmt.Println("upper:", text[0:12])
+	fmt.Println("lower:", text[12:])
 	m.sf.SetText(MapForSending(text))
 	return nil
 }

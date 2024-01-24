@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (a Application) GetCurrentlyPlaying(c *gin.Context) {
+func (a *Application) GetCurrentlyPlaying(c *gin.Context) {
 	playing, err := a.Spotify.GetCurrentlyPlaying()
 
 	fmt.Println(playing)

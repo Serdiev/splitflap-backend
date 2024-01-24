@@ -1,16 +1,13 @@
 package sender
 
-import "fmt"
-
-type NoopSerialSender struct {
+type NoopSender struct {
 }
 
-func NewNoopSerialSender() *UsbSerialSender {
-	return &UsbSerialSender{}
+func NewNoopSender() *NoopSender {
+	return &NoopSender{}
 }
 
 // SendMessage sends the given text over the serial usb
-func (m *NoopSerialSender) SendMessage(text string) error {
-	fmt.Println(text)
+func (m *NoopSender) SendMessage(text string) error {
 	return nil
 }

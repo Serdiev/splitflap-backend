@@ -10,7 +10,7 @@ type SendMessageRequest struct {
 	Message string `json:"message"`
 }
 
-func (a Application) SendMessage(c *gin.Context) {
+func (a *Application) SendMessage(c *gin.Context) {
 	var request = SendMessageRequest{}
 	// Bind the JSON data from the request body to the 'playing' struct
 	if err := c.ShouldBindJSON(&request); err != nil {

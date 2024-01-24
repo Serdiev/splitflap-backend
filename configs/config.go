@@ -28,6 +28,10 @@ type Configuration struct {
 	ALPHABET_ARDUIN_ORDER  string
 }
 
+func (c *Configuration) GetRowLength() int {
+	return c.SPLITFLAP_MODULE_COUNT / 2
+}
+
 var cfg *Configuration
 
 func New() Configuration {

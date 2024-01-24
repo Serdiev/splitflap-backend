@@ -39,11 +39,8 @@ func NewSerialConnectionOnPort(port string) *Serial {
 		log.Error().Err(err).Msg("Failed to connect to port")
 		return nil
 	}
-	log.Info().Msgf("Connecting to port %s", port)
 
-	if &s == nil {
-		log.Info().Msg("no port?")
-	}
+	log.Info().Msgf("Connecting to port %s", port)
 	return &s
 }
 
@@ -63,7 +60,6 @@ func (s *Serial) Open(portName string) error {
 
 	port, err := serial.Open(portName, &mode)
 	if err != nil {
-		log.Error().Err(err).Msg("Failed to connect")
 		return err
 	}
 

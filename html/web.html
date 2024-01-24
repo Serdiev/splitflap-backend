@@ -60,7 +60,7 @@
 </head>
 <body>
 
-<a href="/login">Spotify login</a>
+<a id="spotify-login" href="/login">Spotify login</a>
 
 <form id="myForm">
     <label for="upper">Upper:</label>
@@ -98,6 +98,11 @@
 
     function padString(str, length) {
         return (str + ' '.repeat(length)).slice(0, length);
+    }
+
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('message') === 'logged_in') {
+        $('#spotify-login').hide()
     }
 </script>
 

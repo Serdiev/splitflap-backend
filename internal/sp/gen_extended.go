@@ -40,5 +40,7 @@ func (m *FromSplitflap) PrintSplitflapState() {
 			}
 		}
 	}
-	fmt.Println(msg)
+	if msg != "" {
+		fmt.Println(msg)
+	}
 }
