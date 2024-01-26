@@ -2,7 +2,6 @@ package usb_serial
 
 import (
 	"errors"
-	"fmt"
 	"math/rand"
 	config "splitflap-backend/configs"
 	"splitflap-backend/internal/sp"
@@ -50,8 +49,6 @@ func NewSplitflap(serialInstance SerialConnection) *Splitflap {
 	for _, v := range cfg.Splitflap.AlphabetESP32Order {
 		alphabet = append(alphabet, v)
 	}
-
-	fmt.Println(alphabet)
 
 	s := &Splitflap{
 		serial:          serialInstance,

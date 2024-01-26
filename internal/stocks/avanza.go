@@ -17,7 +17,6 @@ func NewAvanzaClient() AvanzaClient {
 func (c AvanzaClient) GetStockInfo(s Stock) (*models.StockInfo, error) {
 	data, err := c.getStockData(s.AvanzaID)
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 

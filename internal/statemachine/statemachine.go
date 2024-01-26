@@ -14,7 +14,7 @@ var stateHandlers = map[h.DisplayState]func(*h.Application) bool{
 func Initiate(app *h.Application) {
 	ticker := time.NewTicker(time.Second)
 	for range ticker.C {
-		if app.IsIdleState() {
+		if !app.IsIdleState() {
 			continue
 		}
 
@@ -28,7 +28,6 @@ func Initiate(app *h.Application) {
 }
 
 func idleState(app *h.Application) bool {
-	app.SetToIdleState()
 	return false
 }
 

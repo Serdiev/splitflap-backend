@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"math/rand"
-	"net"
 	config "splitflap-backend/configs"
 	"splitflap-backend/internal/sender"
 	"splitflap-backend/internal/usb_serial"
@@ -18,22 +17,12 @@ var cfg = config.New()
 func main() {
 	// sender.AddMapping(4)
 
+	// fmt.Println(sender.MapForSending(strings.Repeat("a", 24)))
+	fmt.Println(sender.MapForSending(strings.Repeat(" ", 24)))
 	// fmt.Println(sender.MapForSending(" utro" + manyOf(" ", 19)))
 	// send()
 
 	// slider()
-	fmt.Println(GetOutboundIP())
-}
-func GetOutboundIP() net.IP {
-	conn, err := net.Dial("udp", "8.8.8.8:80")
-	if err != nil {
-		log.Fatal().Err(err).Msg("awat")
-	}
-	defer conn.Close()
-
-	localAddr := conn.LocalAddr().(*net.UDPAddr)
-
-	return localAddr.IP
 }
 
 func manyOf(a string, num int) string {
@@ -59,11 +48,11 @@ func send() {
 
 	// sf.Calibrate()
 	// sf.SetText(sender.MapForSending("ready or notfugees      "))
-	sf.SetText(sender.MapForSending(strings.Repeat(" ", 24)))
+	sf.SetText(sender.MapForSending(strings.Repeat("a", 24)))
+	time.Sleep(5 * time.Second)
+	sf.SetText(sender.MapForSending(manyOf(" ", 24)))
 	// sf.SetText(sender.MapForSending(manyOf(" ", 24)))
-	// sf.SetText(sender.MapForSending(manyOf(" ", 24)))
-	// time.Sleep(5 * time.Second)
-	// sf.SetText(sender.MapForSending(teaturtle()))
+	// // sf.SetText(sender.MapForSending(teaturtle()))
 	// // alphabet(sf)
 	// alphabetInOrder(sf)
 

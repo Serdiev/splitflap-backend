@@ -3,7 +3,6 @@ package utils
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 )
@@ -11,7 +10,6 @@ import (
 func GetUrl[resType any](url string, res resType) (*resType, error) {
 	resp, err := http.Get(url)
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 	defer resp.Body.Close()

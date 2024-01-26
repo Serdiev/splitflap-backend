@@ -42,6 +42,9 @@ func (a *Application) LoginCallback(c *gin.Context) {
 	client := oauth2.NewClient(c, tokenSrc)
 	a.Spotify = spotify.NewSpotifyClient(client)
 
+	aa, b := a.Spotify.GetCurrentlyPlaying()
+
+	fmt.Println(aa, b)
 	c.Redirect(307, "/home?message=logged_in")
 }
 
@@ -77,7 +80,6 @@ func GetInitialAccessToken(code string) *oauth2.Token {
 		return nil
 	}
 
-	fmt.Println(string(respBody))
 	// Check the response status code
 	if resp.StatusCode != http.StatusOK {
 		fmt.Println("Request failed with status code:", resp.StatusCode)

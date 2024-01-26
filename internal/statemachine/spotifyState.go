@@ -32,6 +32,7 @@ func initSpotifyStateHandler(app *h.Application) bool {
 	// set state to handle spotify and initiate spotify handler
 	app.SetState(h.Spotify)
 	go handleSpotifyState(app)
+	fmt.Println("Starting spotify handler")
 	return true
 }
 
@@ -41,11 +42,12 @@ func handleSpotifyState(app *h.Application) {
 	for range ticker.C {
 		playing, _ := app.Spotify.GetCurrentlyPlaying()
 		if playing == nil {
-			app.SetState(h.Idle)
+			app.SetToIdleState()
 			return
 		}
 
-		app.Sender.SendMessage(getPlayingText(playing))
+		msg := getPlayingText(playing)
+		app.Sender.SendMessage(msg)
 	}
 }
 
@@ -55,7 +57,9 @@ func getPlayingText(playing *models.SpotifyIsPlaying) string {
 		text.TopLeft(playing.Song + " - ")
 		text.TopRight(playing.Artist)
 
-		// text.BottomLeft(BottomSlider())
+		sliderText := BottomSlider(playing.PercentageLeft())
+		fmt.Println(sliderText)
+		text.BottomLeft(sliderText)
 	} else {
 		text.TopLeft(playing.Song)
 		text.BottomLeft(playing.Artist)
@@ -72,11 +76,9 @@ func BottomSlider(percentage int) string {
 		pct = 1
 	}
 
-	passed := 0
 	left := float32(cfg.GetRowLength()) * (float32(pct) / 100)
-
-	finishedString := strings.Repeat("%", int(left))
-	leftString := strings.Repeat("%", cfg.GetRowLength()-passed)
+	finishedString := strings.Repeat("-", int(left))
+	leftString := strings.Repeat("+", cfg.GetRowLength()-int(left))
 	msg := fmt.Sprintf("%s%s", finishedString, leftString)
 	return msg
 }

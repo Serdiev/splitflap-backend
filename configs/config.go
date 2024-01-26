@@ -73,7 +73,7 @@ func New() Configuration {
 			DriverCount:         count / 6,
 			AlphabetOffset:      os.Getenv("ALPHABET_OFFSET_UPPER") + os.Getenv("ALPHABET_OFFSET_LOWER"),
 			AlphabetCustomOrder: os.Getenv("ALPHABET_CUSTOM_ORDER"),
-			AlphabetESP32Order:  os.Getenv("ALPHABET_ARDUIN_ORDER"),
+			AlphabetESP32Order:  os.Getenv("ALPHABET_ESP32_ORDER"),
 		},
 	}
 
