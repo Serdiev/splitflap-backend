@@ -42,8 +42,6 @@ type Splitflap struct {
 	alphabet        []rune
 }
 
-type forceMovementFunc func(rune) bool
-
 func NewSplitflap(serialInstance SerialConnection) *Splitflap {
 	alphabet := []rune{}
 	for _, v := range cfg.Splitflap.AlphabetESP32Order {
@@ -224,7 +222,7 @@ func (sf *Splitflap) Calibrate() {
 }
 
 func (sf *Splitflap) SetText(text string) error {
-	return sf.setTextWithMovement(text, ForceMovementNone)
+	return sf.setTextWithMovement(text, ForceMovementAll)
 }
 
 func (sf *Splitflap) setTextWithMovement(text string, forceMovement ForceMovement) error {

@@ -151,6 +151,7 @@ func ReplaceDisallowedLetters(s string) string {
 	output = strings.ReplaceAll(output, "å", "a")
 	output = strings.ReplaceAll(output, "ä", "a")
 	output = strings.ReplaceAll(output, "ö", "o")
+	output = strings.ReplaceAll(output, ".", ",")
 	return output
 }
 

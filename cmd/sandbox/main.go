@@ -19,8 +19,9 @@ func main() {
 
 	// fmt.Println(sender.MapForSending(strings.Repeat("a", 24)))
 	fmt.Println(sender.MapForSending(strings.Repeat(" ", 24)))
+	fmt.Println(sender.MapForSending(strings.Repeat("a", 24)))
 	// fmt.Println(sender.MapForSending(" utro" + manyOf(" ", 19)))
-	// send()
+	send()
 
 	// slider()
 }
