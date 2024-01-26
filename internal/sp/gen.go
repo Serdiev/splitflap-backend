@@ -1325,14 +1325,14 @@ var file_test_proto_depIdxs = []int32{
 	1,  // 1: PB.SupervisorState.state:type_name -> PB.SupervisorState.State
 	14, // 2: PB.SupervisorState.power_channels:type_name -> PB.SupervisorState.PowerChannelState
 	15, // 3: PB.SupervisorState.fault_info:type_name -> PB.SupervisorState.FaultInfo
-	4,  // 4: PB.FromSplitflap.splitflap_state:type_name -> PB.SplitflapState
+	4,  // 4: PB.FromSplitflap._state:type_name -> PB.SplitflapState
 	5,  // 5: PB.FromSplitflap.log:type_name -> PB.Log
 	6,  // 6: PB.FromSplitflap.ack:type_name -> PB.Ack
 	7,  // 7: PB.FromSplitflap.supervisor_state:type_name -> PB.SupervisorState
 	16, // 8: PB.SplitflapCommand.modules:type_name -> PB.SplitflapCommand.ModuleCommand
 	17, // 9: PB.SplitflapConfig.modules:type_name -> PB.SplitflapConfig.ModuleConfig
-	9,  // 10: PB.ToSplitflap.splitflap_command:type_name -> PB.SplitflapCommand
-	10, // 11: PB.ToSplitflap.splitflap_config:type_name -> PB.SplitflapConfig
+	9,  // 10: PB.ToSplitflap._command:type_name -> PB.SplitflapCommand
+	10, // 11: PB.ToSplitflap._config:type_name -> PB.SplitflapConfig
 	11, // 12: PB.ToSplitflap.request_state:type_name -> PB.RequestState
 	0,  // 13: PB.SplitflapState.ModuleState.state:type_name -> PB.SplitflapState.ModuleState.State
 	2,  // 14: PB.SupervisorState.FaultInfo.type:type_name -> PB.SupervisorState.FaultInfo.FaultType

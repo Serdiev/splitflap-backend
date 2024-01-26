@@ -47,7 +47,7 @@ type forceMovementFunc func(rune) bool
 
 func NewSplitflap(serialInstance SerialConnection) *Splitflap {
 	alphabet := []rune{}
-	for _, v := range cfg.ALPHABET_ARDUIN_ORDER {
+	for _, v := range cfg.Splitflap.AlphabetESP32Order {
 		alphabet = append(alphabet, v)
 	}
 
@@ -65,7 +65,7 @@ func NewSplitflap(serialInstance SerialConnection) *Splitflap {
 	}
 
 	// TODO: Remove later
-	s.initializeModuleList(cfg.SPLITFLAP_MODULE_COUNT)
+	s.initializeModuleList(cfg.Splitflap.ModuleCount)
 
 	return s
 }

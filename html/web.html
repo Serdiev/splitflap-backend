@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -51,6 +52,20 @@
             cursor: pointer;
         }
 
+        .logged-in {
+            background-color: #7AFA84;
+        }
+
+        .flex-column {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .check-currently-playing {
+            cursor: pointer;
+        }
+
         button:hover {
             background-color: #0056b3;
         }
@@ -58,53 +73,83 @@
     <!-- Include jQuery library -->
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 </head>
+
 <body>
+    <div class="flex-column">
+        <a id="spotify-login" href="/login">Spotify login</a>
+        <div class="logged-in">Logged into Spotify</div>
+        <div class="check-currently-playing" onclick="currentlyPlaying()">Check whats currently playing</div>
+        <div class="currently-playing flex-column">
+            <div class="song"></div>
+            <div class="artist"></div>
+            <div class="time-left"></div>
+        </div>
+    </div>
+    <form id="myForm">
+        <label for="upper">Upper:</label>
+        <input type="text" id="upper" name="upper" maxlength="12" required>
+        <label for="lower">Lower:</label>
+        <input type="text" id="lower" name="lower" maxlength="12" required>
+        <br>
+        <button type="button" onclick="sendMessage()">Send Message</button>
+    </form>
 
-<a id="spotify-login" href="/login">Spotify login</a>
+    <script>
+        function sendMessage() {
+            var upper = padString($("#upper").val(), 12);
+            var lower = padString($("#lower").val(), 12);
+            var data = {
+                message: upper + lower
+            };
 
-<form id="myForm">
-    <label for="upper">Upper:</label>
-    <input type="text" id="upper" name="upper" maxlength="12" required>
-    <label for="lower">Lower:</label>
-    <input type="text" id="lower" name="lower" maxlength="12" required>
-    <br>
-    <button type="button" onclick="sendMessage()">Send Message</button>
-</form>
+            $.ajax({
+                type: "POST",
+                url: "/message", // Replace with your actual endpoint URL
+                data: JSON.stringify(data),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (response) {
+                    console.log("Message sent successfully:", response);
+                    // Handle the success response here
+                },
+                error: function (error) {
+                    console.error("Error sending message:", error);
+                    // Handle the error response here
+                }
+            });
+        }
 
-<script>
-    function sendMessage() {
-        var upper = padString($("#upper").val(), 12);
-        var lower = padString($("#lower").val(), 12);
-        var data = {
-            message: upper+lower
-        };
+        function padString(str, length) {
+            return (str + ' '.repeat(length)).slice(0, length);
+        }
 
-        $.ajax({
-            type: "POST",
-            url: "/message", // Replace with your actual endpoint URL
-            data: JSON.stringify(data),
-            contentType: "application/json; charset=utf-8",
-            dataType: "json",
-            success: function(response) {
-                console.log("Message sent successfully:", response);
-                // Handle the success response here
-            },
-            error: function(error) {
-                console.error("Error sending message:", error);
-                // Handle the error response here
-            }
-        });
-    }
 
-    function padString(str, length) {
-        return (str + ' '.repeat(length)).slice(0, length);
-    }
+        function currentlyPlaying() {
+            $.ajax({
+                type: "GET",
+                url: "/playing", // Replace with your actual endpoint URL
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (response) {
+                    console.log("Message sent successfully:", response);
+                    // Handle the success response here
+                    $('.song').html(response.Song)
+                    $('.artist').html(response.Artist)
+                    $('.time-left').html(response.TimeLeft)
+                },
+                error: function (error) {
+                    console.error("Error sending message:", error);
+                    // Handle the error response here
+                }
+            });
+        }
 
-    const params = new URLSearchParams(window.location.search)
-    if (params.get('message') === 'logged_in') {
-        $('#spotify-login').hide()
-    }
-</script>
+        const params = new URLSearchParams(window.location.search)
+        if (params.get('message') === 'logged_in') {
+            $('.logged-in').show()
+        }
+    </script>
 
 </body>
+
 </html>

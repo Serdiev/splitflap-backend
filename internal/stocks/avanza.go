@@ -11,9 +11,7 @@ type AvanzaClient struct {
 }
 
 func NewAvanzaClient() AvanzaClient {
-	return AvanzaClient{
-		baseUrl: cfg.ALPHA_VANTAGE_URL,
-	}
+	return AvanzaClient{}
 }
 
 func (c AvanzaClient) GetStockInfo(s Stock) (*models.StockInfo, error) {

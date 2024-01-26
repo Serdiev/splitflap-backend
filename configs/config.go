@@ -8,28 +8,36 @@ import (
 )
 
 type Configuration struct {
-	MQTT_ENABLED    bool
-	MQTT_BROKER_URL string
-	MQTT_TOPIC      string
+	MQTT       MQTTConfig
+	Spotify    SpotifyConfig
+	Splitflap  SplitFlapConfig
+	IP_ADDRESS string
+}
 
-	SPOTIFY_URL           string
-	SPOTIFY_TOKEN_URL     string
-	SPOTIFY_CLIENT_ID     string
-	SPOTIFY_CLIENT_SECRET string
-	SPOTIFY_REDIRECT_URL  string
+type MQTTConfig struct {
+	Enabled   bool
+	BrokerUrl string
+	Topic     string
+}
 
-	ALPHA_VANTAGE_URL     string
-	ALPHA_VANTAGE_API_KEY string
+type SplitFlapConfig struct {
+	ModuleCount         int
+	DriverCount         int
+	AlphabetOffset      string
+	AlphabetCustomOrder string
+	AlphabetESP32Order  string
+}
 
-	SPLITFLAP_MODULE_COUNT int
-	DRIVER_COUNT           int
-	ALPHABET_OFFSET        string
-	ALPHABET_CUSTOM_ORDER  string
-	ALPHABET_ARDUIN_ORDER  string
+type SpotifyConfig struct {
+	BaseUrl      string
+	TokenUrl     string
+	ClientId     string
+	ClientSecret string
+	RedirectUrl  string
 }
 
 func (c *Configuration) GetRowLength() int {
-	return c.SPLITFLAP_MODULE_COUNT / 2
+	return c.Splitflap.ModuleCount / 2
 }
 
 var cfg *Configuration
@@ -48,34 +56,31 @@ func New() Configuration {
 	}
 
 	cfg = &Configuration{
-		MQTT_ENABLED:    os.Getenv("MQTT_ENABLED") == "true",
-		MQTT_BROKER_URL: os.Getenv("MQTT_BROKER"),
-		MQTT_TOPIC:      os.Getenv("MQTT_TOPIC"),
-
-		SPOTIFY_URL:           os.Getenv("SPOTIFY_URL"),
-		SPOTIFY_TOKEN_URL:     os.Getenv("SPOTIFY_TOKEN_URL"),
-		SPOTIFY_CLIENT_ID:     os.Getenv("SPOTIFY_CLIENT_ID"),
-		SPOTIFY_CLIENT_SECRET: os.Getenv("SPOTIFY_CLIENT_SECRET"),
-		SPOTIFY_REDIRECT_URL:  os.Getenv("SPOTIFY_REDIRECT_URL"),
-
-		ALPHA_VANTAGE_URL:     os.Getenv("ALPHA_VANTAGE_URL"),
-		ALPHA_VANTAGE_API_KEY: os.Getenv("ALPHA_VANTAGE_API_KEY"),
-
-		SPLITFLAP_MODULE_COUNT: count,
-		DRIVER_COUNT:           count / 6,
-		ALPHABET_OFFSET:        os.Getenv("ALPHABET_OFFSET_UPPER") + os.Getenv("ALPHABET_OFFSET_LOWER"),
-		ALPHABET_CUSTOM_ORDER:  os.Getenv("ALPHABET_CUSTOM_ORDER"),
-		ALPHABET_ARDUIN_ORDER:  os.Getenv("ALPHABET_ARDUIN_ORDER"),
+		MQTT: MQTTConfig{
+			Enabled:   os.Getenv("MQTT_ENABLED") == "true",
+			BrokerUrl: os.Getenv("MQTT_BROKER"),
+			Topic:     os.Getenv("MQTT_TOPIC"),
+		},
+		Spotify: SpotifyConfig{
+			BaseUrl:      os.Getenv("SPOTIFY_URL"),
+			TokenUrl:     os.Getenv("SPOTIFY_TOKEN_URL"),
+			ClientId:     os.Getenv("SPOTIFY_CLIENT_ID"),
+			ClientSecret: os.Getenv("SPOTIFY_CLIENT_SECRET"),
+			RedirectUrl:  os.Getenv("SPOTIFY_REDIRECT_URL"),
+		},
+		Splitflap: SplitFlapConfig{
+			ModuleCount:         count,
+			DriverCount:         count / 6,
+			AlphabetOffset:      os.Getenv("ALPHABET_OFFSET_UPPER") + os.Getenv("ALPHABET_OFFSET_LOWER"),
+			AlphabetCustomOrder: os.Getenv("ALPHABET_CUSTOM_ORDER"),
+			AlphabetESP32Order:  os.Getenv("ALPHABET_ARDUIN_ORDER"),
+		},
 	}
-	// fmt.Println(os.Getenv("ALPHABET_OFFSET_UPPER"))
-	// fmt.Println(os.Getenv("ALPHABET_OFFSET_LOWER"))
-	// fmt.Println(cfg.ALPHABET_OFFSET)
 
-	if len(cfg.ALPHABET_OFFSET) != cfg.SPLITFLAP_MODULE_COUNT {
+	if len(cfg.Splitflap.AlphabetOffset) != cfg.Splitflap.ModuleCount {
 		panic("Offset setup doesnt match number of modules")
-	}
-	if len(cfg.ALPHABET_ARDUIN_ORDER) != len(cfg.ALPHABET_CUSTOM_ORDER) {
-		panic("mismatch between custom and arduino length")
+	} else if len(cfg.Splitflap.AlphabetESP32Order) != len(cfg.Splitflap.AlphabetCustomOrder) {
+		panic("Mismatch between custom alphabet and ESP32 alphabet length")
 	}
 
 	return *cfg

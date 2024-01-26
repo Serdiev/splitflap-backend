@@ -48,18 +48,18 @@ func (a *Application) LoginCallback(c *gin.Context) {
 func GetInitialAccessToken(code string) *oauth2.Token {
 	formData := url.Values{}
 	formData.Set("code", code)
-	formData.Set("redirect_uri", cfg.SPOTIFY_REDIRECT_URL)
+	formData.Set("redirect_uri", cfg.Spotify.RedirectUrl)
 	formData.Set("grant_type", "authorization_code")
 
 	// Create the HTTP request
-	req, err := http.NewRequest("POST", cfg.SPOTIFY_TOKEN_URL, strings.NewReader(formData.Encode()))
+	req, err := http.NewRequest("POST", cfg.Spotify.TokenUrl, strings.NewReader(formData.Encode()))
 	if err != nil {
 		fmt.Println("Error creating request:", err)
 		return nil
 	}
 
 	// Set the headers
-	authHeader := "Basic " + base64.StdEncoding.EncodeToString([]byte(cfg.SPOTIFY_CLIENT_ID+":"+cfg.SPOTIFY_CLIENT_SECRET))
+	authHeader := "Basic " + base64.StdEncoding.EncodeToString([]byte(cfg.Spotify.ClientId+":"+cfg.Spotify.ClientSecret))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Authorization", authHeader)
 
@@ -122,7 +122,7 @@ func (sts *SpotifyTokenSource) Token() (*oauth2.Token, error) {
 	formData.Set("grant_type", "refresh_token")
 
 	// Create the HTTP request
-	req, err := http.NewRequest("POST", cfg.SPOTIFY_TOKEN_URL, strings.NewReader(formData.Encode()))
+	req, err := http.NewRequest("POST", cfg.Spotify.TokenUrl, strings.NewReader(formData.Encode()))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}

@@ -38,7 +38,7 @@ func (m *MQTTSender) isInitiated() bool {
 // NewMQTTSender creates a new instance of MQTTSender.
 func NewMQTTSender(topic string) *MQTTSender {
 	opts := MQTT.NewClientOptions()
-	opts.AddBroker(cfg.MQTT_BROKER_URL)
+	opts.AddBroker(cfg.MQTT.BrokerUrl)
 	opts.SetClientID("some_sender")
 
 	// Create MQTT client

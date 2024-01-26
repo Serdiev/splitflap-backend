@@ -15,8 +15,8 @@ var customToArduinoMapping = createArduinoMap()
 
 func createArduinoMap() map[string]string {
 	m := map[string]string{}
-	for i := 0; i < len(cfg.ALPHABET_CUSTOM_ORDER); i++ {
-		m[string(cfg.ALPHABET_CUSTOM_ORDER[i])] = string(cfg.ALPHABET_ARDUIN_ORDER[i])
+	for i := 0; i < len(cfg.Splitflap.AlphabetCustomOrder); i++ {
+		m[string(cfg.Splitflap.AlphabetCustomOrder[i])] = string(cfg.Splitflap.AlphabetESP32Order[i])
 	}
 
 	return m
@@ -84,7 +84,7 @@ func createWireMapping() map[int]int {
 
 func createLetterToIndexMap() map[string]int {
 	m := map[string]int{}
-	for i, v := range cfg.ALPHABET_CUSTOM_ORDER {
+	for i, v := range cfg.Splitflap.AlphabetCustomOrder {
 		letter := string(v)
 		m[letter] = i
 	}
@@ -93,7 +93,7 @@ func createLetterToIndexMap() map[string]int {
 
 func createIndexToLetterMap() map[int]string {
 	m := map[int]string{}
-	for i, v := range cfg.ALPHABET_CUSTOM_ORDER {
+	for i, v := range cfg.Splitflap.AlphabetCustomOrder {
 		letter := string(v)
 		m[i] = letter
 	}
@@ -170,7 +170,7 @@ func SpoolOffsetMapping(text string) string {
 	output := ""
 
 	for i := 0; i < len(text); i++ {
-		letterOffset := string(cfg.ALPHABET_OFFSET[i])
+		letterOffset := string(cfg.Splitflap.AlphabetOffset[i])
 		offset := LetterToIndexMap[letterOffset]
 		currentIndex := LetterToIndexMap[string(text[i])]
 		adjustedIndex := (40 + currentIndex - offset) % 40

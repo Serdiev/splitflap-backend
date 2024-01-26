@@ -26,7 +26,7 @@ func CreateService(c context.Context) Application {
 	return Application{
 		Context: c,
 		Sender:  GetSender(),
-		Spotify: spotify.NewNoopSpotifyClient(), // replacing unusable client once we login to spotify
+		Spotify: spotify.NewNoopSpotifyClient(), // gets replaced with real client once we login to spotify
 		Stocks:  stocks.NewAvanzaClient(),
 		State:   Idle,
 	}
@@ -60,11 +60,11 @@ type StocksClient interface {
 // Sets text with correct length (inserting spaces or truncating)
 func (a *Application) SetSplitflapText(text string) error {
 	preparedText := text
-	diff := len(text) - cfg.SPLITFLAP_MODULE_COUNT
+	diff := len(text) - cfg.Splitflap.ModuleCount
 
 	// truncate to module_count
 	if diff > 0 {
-		preparedText = text[:cfg.SPLITFLAP_MODULE_COUNT]
+		preparedText = text[:cfg.Splitflap.ModuleCount]
 	}
 
 	// adds spaces to module_count
@@ -83,7 +83,7 @@ func (a *Application) SetState(state DisplayState) {
 // Sets mode to idle and sets text to empty
 func (a *Application) SetToIdleState() {
 	a.State = Idle
-	a.Sender.SendMessage(strings.Repeat(" ", cfg.SPLITFLAP_MODULE_COUNT))
+	a.Sender.SendMessage(strings.Repeat(" ", cfg.Splitflap.ModuleCount))
 }
 
 // Sets text with correct length (inserting spaces or truncating)

@@ -23,9 +23,9 @@ func SetupRouting(a *handlers.Application) *gin.Engine {
 
 	r.GET("/login", func(c *gin.Context) {
 		responseType := c.DefaultQuery("response_type", "code")
-		clientID := c.DefaultQuery("client_id", cfg.SPOTIFY_CLIENT_ID)
+		clientID := c.DefaultQuery("client_id", cfg.Spotify.ClientId)
 		scope := c.DefaultQuery("scope", "user-read-currently-playing")
-		redirectURI := c.DefaultQuery("redirect_uri", cfg.SPOTIFY_REDIRECT_URL)
+		redirectURI := c.DefaultQuery("redirect_uri", cfg.Spotify.RedirectUrl)
 
 		// Construct the redirect URL
 		redirectURL := "https://accounts.spotify.com/authorize?" +

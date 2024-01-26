@@ -41,7 +41,7 @@ func (sc SpotifyClient) GetCurrentlyPlaying() (*models.SpotifyIsPlaying, error) 
 		return nil, nil
 	}
 
-	resp, err := sc.client.Get(cfg.SPOTIFY_URL + "me/player/currently-playing")
+	resp, err := sc.client.Get(cfg.Spotify.BaseUrl + "/me/player/currently-playing")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get the current song: %w", err)
 	}
