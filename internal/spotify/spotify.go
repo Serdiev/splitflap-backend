@@ -42,7 +42,7 @@ func (sc SpotifyClient) GetCurrentlyPlaying() (*models.SpotifyIsPlaying, error) 
 		return nil, nil
 	}
 
-	resp, err := sc.client.Get(cfg.Spotify.BaseUrl + "/me/player/currently-playing")
+	resp, err := sc.client.Get(cfg.Spotify.BaseUrl + "/me/player/currently-playing?additional_types=track,episode")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get the current song: %w", err)
 	}
@@ -69,8 +69,11 @@ func (sc SpotifyClient) GetCurrentlyPlaying() (*models.SpotifyIsPlaying, error) 
 		return nil, fmt.Errorf("failed to parse API response: %w", err)
 	}
 
+	fmt.Println(string(bytes))
 	if spotifyResp.IsPlaying {
-		return mapToDto(spotifyResp), nil
+		dto := mapToDto(spotifyResp)
+		fmt.Println(dto)
+		return dto, nil
 	}
 
 	return nil, nil
@@ -78,6 +81,18 @@ func (sc SpotifyClient) GetCurrentlyPlaying() (*models.SpotifyIsPlaying, error) 
 
 func mapToDto(resp SpotifyResponse) *models.SpotifyIsPlaying {
 	secondsLeft := asSeconds(resp.Item.DurationMS - resp.ProgressMS)
+
+	if resp.CurrentlyPlayingType == "episode" {
+		return &models.SpotifyIsPlaying{
+			Song:        resp.Item.Name,
+			Artist:      resp.Item.Show.Name,
+			ProgressMs:  asSeconds(resp.ProgressMS),
+			DurationMs:  asSeconds(resp.Item.DurationMS),
+			SecondsLeft: secondsLeft,
+			TimeLeft:    formatSecondsToMMSS(secondsLeft),
+		}
+	}
+
 	return &models.SpotifyIsPlaying{
 		Song:        resp.Item.Name,
 		Artist:      resp.Item.Artists[0].Name,

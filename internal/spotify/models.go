@@ -60,6 +60,12 @@ type Item struct {
 	Type             string       `json:"type"`
 	URI              string       `json:"uri"`
 	IsLocal          bool         `json:"is_local"`
+	Show             Show         `json:"show"`
+}
+
+// Show about podcast episode
+type Show struct {
+	Name string `json:"name"`
 }
 
 // Album represents the album information.

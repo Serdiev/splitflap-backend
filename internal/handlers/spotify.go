@@ -22,17 +22,33 @@ type SpotifyClient interface {
 	GetCurrentlyPlaying() (*models.SpotifyIsPlaying, error)
 }
 
-func (a *Application) LoginCallback(c *gin.Context) {
+func (a *Application) SpotifyLogin(c *gin.Context) {
+	responseType := c.DefaultQuery("response_type", "code")
+	clientID := c.DefaultQuery("client_id", cfg.Spotify.ClientId)
+	scope := c.DefaultQuery("scope", "user-read-currently-playing")
+	redirectURI := c.DefaultQuery("redirect_uri", cfg.Spotify.RedirectUrl)
+
+	// Construct the redirect URL
+	redirectURL := "https://accounts.spotify.com/authorize?" +
+		"response_type=" + responseType +
+		"&client_id=" + clientID +
+		"&scope=" + scope +
+		"&redirect_uri=" + redirectURI
+
+	c.Redirect(307, redirectURL)
+}
+
+func (a *Application) SpotifyLoginCallback(c *gin.Context) {
 	code := c.Query("code")
 	if code == "" {
 		// c.JSON(http.StatusOK, "could not login, did not receive code")
-		c.Redirect(307, "/home")
+		c.Redirect(307, "/")
 		return
 	}
 
 	auth := GetInitialAccessToken(code)
 	if auth == nil {
-		c.Redirect(307, "/home")
+		c.Redirect(307, "/")
 		return
 	}
 
@@ -45,7 +61,7 @@ func (a *Application) LoginCallback(c *gin.Context) {
 	aa, b := a.Spotify.GetCurrentlyPlaying()
 
 	fmt.Println(aa, b)
-	c.Redirect(307, "/home?message=logged_in")
+	c.Redirect(307, "/?message=logged_in")
 }
 
 func GetInitialAccessToken(code string) *oauth2.Token {

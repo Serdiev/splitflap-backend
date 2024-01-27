@@ -2,6 +2,7 @@ package usb_serial
 
 import (
 	"errors"
+	"fmt"
 	"math/rand"
 	config "splitflap-backend/configs"
 	"splitflap-backend/internal/sp"
@@ -41,8 +42,6 @@ type Splitflap struct {
 	numModules      int
 	alphabet        []rune
 }
-
-type forceMovementFunc func(rune) bool
 
 func NewSplitflap(serialInstance SerialConnection) *Splitflap {
 	alphabet := []rune{}
@@ -287,6 +286,7 @@ func (sf *Splitflap) setPositions(positions []uint32, forceMovementList []bool) 
 		if forceMovementList != nil && forceMovementList[i] {
 			sf.currentConfig.Modules[i].MovementNonce = (sf.currentConfig.Modules[i].MovementNonce + 1) % 256
 		}
+		fmt.Printf("%v - nonce: %v - target: %v\n", i, sf.currentConfig.Modules[i].MovementNonce, sf.currentConfig.Modules[i].TargetFlapIndex)
 	}
 
 	message := &sp.ToSplitflap{
