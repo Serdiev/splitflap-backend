@@ -2,8 +2,11 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"math/rand"
+	"net/http"
 	config "splitflap-backend/configs"
+	"splitflap-backend/internal/stocks"
 	"splitflap-backend/internal/usb_serial"
 	"splitflap-backend/internal/utils"
 	"strings"
@@ -15,7 +18,53 @@ import (
 var cfg = config.New()
 
 func main() {
-	send()
+
+	// Specify the URL you want to make a request to
+	url := "https://www.avanza.se/_api/market-guide/stock/3873"
+
+	// Create a custom HTTP client with HTTP/1.1 transport
+	client := &http.Client{
+		Transport: &http.Transport{
+			MaxIdleConns:       10,
+			IdleConnTimeout:    30,
+			DisableCompression: true, // Disable HTTP/2
+		},
+	}
+
+	// Make the GET request using the custom client
+	response, err := client.Get(url)
+	if err != nil {
+		fmt.Println("Error making the request:", err)
+		return
+	}
+	defer response.Body.Close()
+
+	// Check the response status code
+	if response.StatusCode != http.StatusOK {
+		fmt.Printf("Unexpected status code: %d\n", response.StatusCode)
+		return
+	}
+
+	// Read the response body
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		fmt.Println("Error reading response body:", err)
+		return
+	}
+
+	// Print the response body
+	fmt.Println("Response Body:")
+	fmt.Println(string(body))
+
+	utils.SetTimeZone()
+
+	a := stocks.NewAvanzaClient()
+	r, err := a.GetStockInfo(stocks.TRACKED_STOCKS[1])
+
+	fmt.Println(r)
+	fmt.Println(err)
+	// fmt.Println(time.Now())
+	// send()
 }
 
 func replaceAt(s string, i int, c rune) string {

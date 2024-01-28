@@ -7,7 +7,6 @@ import (
 )
 
 type AvanzaClient struct {
-	baseUrl string
 }
 
 func NewAvanzaClient() AvanzaClient {

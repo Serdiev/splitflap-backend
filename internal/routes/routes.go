@@ -2,22 +2,20 @@ package routes
 
 import (
 	"net/http"
-	config "splitflap-backend/configs"
 	"splitflap-backend/internal/handlers"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
-var cfg = config.New()
-
 func SetupRouting(a *handlers.Application) *gin.Engine {
 
 	r := gin.Default()
-	config := cors.Config{}
-	config.AllowAllOrigins = true
-	config.AllowMethods = []string{"*"} // Add "OPTIONS" to the allowed methods
-	config.AllowHeaders = []string{"*"} // Allow the necessary headers
+	config := cors.Config{
+		AllowOrigins: []string{"https://fdev.store"},
+		AllowMethods: []string{http.MethodGet, http.MethodPost},
+		AllowHeaders: []string{"*"},
+	}
 
 	r.Use(cors.New(config))
 

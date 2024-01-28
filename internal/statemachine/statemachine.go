@@ -1,54 +1,38 @@
 package statemachine
 
 import (
-	"fmt"
 	h "splitflap-backend/internal/handlers"
 	"time"
 )
 
-var stateHandlers = map[h.DisplayState]func(*h.Application) bool{
-	h.Idle:    idleState,
-	h.Spotify: initSpotifyStateHandler,
-}
-
 func Initiate(app *h.Application) {
+	s := StateHandler{App: app}
+
+	stateHandlers := map[h.DisplayState]func() bool{
+		h.Idle:    s.idleState,
+		h.Spotify: s.initSpotifyStateHandler,
+		h.Stocks:  s.initAvanzaHandler,
+	}
+
 	ticker := time.NewTicker(time.Second)
 	for range ticker.C {
 		if !app.IsIdleState() {
 			continue
 		}
 
-		for _, swapHandlerFunc := range stateHandlers {
-			swapState := swapHandlerFunc(app)
-			if swapState {
+		for _, stateHandler := range stateHandlers {
+			swappedState := stateHandler()
+			if swappedState {
 				break
 			}
 		}
 	}
 }
 
-func idleState(app *h.Application) bool {
-	return false
+type StateHandler struct {
+	App *h.Application
 }
 
-func HandleStocksState(app *h.Application) bool {
-	ticker := time.NewTicker(time.Second * 1)
-
-	i := 0
-	for range ticker.C {
-		stock := TRACKED_STOCKS[i]
-		info, err := app.Stocks.GetStockInfo(stock)
-		fmt.Println(info, err)
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		if i >= len(TRACKED_STOCKS) {
-			break
-		}
-
-		i++
-	}
-
-	return true
+func (s *StateHandler) idleState() bool {
+	return false
 }

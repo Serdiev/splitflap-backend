@@ -8,12 +8,15 @@ import (
 	"splitflap-backend/internal/handlers"
 	"splitflap-backend/internal/routes"
 	"splitflap-backend/internal/statemachine"
+	"splitflap-backend/internal/utils"
 )
 
 var cfg = config.New()
 var app handlers.Application
 
 func main() {
+	utils.SetTimeZone()
+
 	c := context.Background()
 	app = handlers.CreateService(c)
 
@@ -23,15 +26,12 @@ func main() {
 
 	// r.Run(":8080")
 
-	certFile := "/etc/letsencrypt/live/fdev.store/fullchain.pem"
-	keyFile := "/etc/letsencrypt/live/fdev.store/privkey.pem"
-
 	server := &http.Server{
 		Addr:    ":https", // Listen on HTTPS port 443
 		Handler: r,
 	}
 
-	err := server.ListenAndServeTLS(certFile, keyFile)
+	err := server.ListenAndServeTLS(cfg.General.CertFile, cfg.General.KeyFile)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}

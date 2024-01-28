@@ -13,8 +13,8 @@ import (
 var cfg = config.New()
 var lastCheckedSpotify = time.Now()
 
-func initSpotifyStateHandler(app *h.Application) bool {
-	if !app.Spotify.IsLoggedIn() {
+func (s *StateHandler) initSpotifyStateHandler() bool {
+	if !s.App.Spotify.IsLoggedIn() {
 		return false
 	}
 
@@ -24,30 +24,34 @@ func initSpotifyStateHandler(app *h.Application) bool {
 
 	lastCheckedSpotify = time.Now()
 
-	playing, err := app.Spotify.GetCurrentlyPlaying()
+	playing, err := s.App.Spotify.GetCurrentlyPlaying()
 	if err != nil || playing == nil {
 		return false
 	}
 
 	// set state to handle spotify and initiate spotify handler
-	app.SetState(h.Spotify)
-	go handleSpotifyState(app)
+	s.App.SetState(h.Spotify)
+	go s.handleSpotifyState()
 	fmt.Println("Starting spotify handler")
 	return true
 }
 
-func handleSpotifyState(app *h.Application) {
+func (s *StateHandler) handleSpotifyState() {
 	ticker := time.NewTicker(5 * time.Second)
 
 	for range ticker.C {
-		playing, _ := app.Spotify.GetCurrentlyPlaying()
+		if s.App.State != h.Spotify {
+			return
+		}
+
+		playing, _ := s.App.Spotify.GetCurrentlyPlaying()
 		if playing == nil {
-			app.SetToIdleState()
+			s.App.SetToIdleState()
 			return
 		}
 
 		msg := getPlayingText(playing)
-		app.Sender.SendMessage(msg)
+		s.App.Sender.SendMessage(msg)
 	}
 }
 

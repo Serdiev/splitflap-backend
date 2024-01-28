@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 
@@ -8,10 +9,16 @@ import (
 )
 
 type Configuration struct {
-	MQTT       MQTTConfig
-	Spotify    SpotifyConfig
-	Splitflap  SplitFlapConfig
-	IP_ADDRESS string
+	MQTT      MQTTConfig
+	Spotify   SpotifyConfig
+	Splitflap SplitFlapConfig
+	General   General
+}
+
+type General struct {
+	TimeZone string
+	CertFile string
+	KeyFile  string
 }
 
 type MQTTConfig struct {
@@ -49,39 +56,52 @@ func New() Configuration {
 
 	godotenv.Load(".env")
 
-	count, err := strconv.Atoi(os.Getenv("SPLITFLAP_MODULE_COUNT"))
+	count, err := strconv.Atoi(GetVar("SPLITFLAP_MODULE_COUNT"))
 	if err != nil {
-		// panic("need module count")
-		count = 6
+		panic("count not valid number")
 	}
 
 	cfg = &Configuration{
-		MQTT: MQTTConfig{
-			Enabled:   os.Getenv("MQTT_ENABLED") == "true",
-			BrokerUrl: os.Getenv("MQTT_BROKER"),
-			Topic:     os.Getenv("MQTT_TOPIC"),
-		},
+		// MQTT: MQTTConfig{
+		// 	Enabled:   GetVar("MQTT_ENABLED") == "true",
+		// 	BrokerUrl: GetVar("MQTT_BROKER"),
+		// 	Topic:     GetVar("MQTT_TOPIC"),
+		// },
 		Spotify: SpotifyConfig{
-			BaseUrl:      os.Getenv("SPOTIFY_URL"),
-			TokenUrl:     os.Getenv("SPOTIFY_TOKEN_URL"),
-			ClientId:     os.Getenv("SPOTIFY_CLIENT_ID"),
-			ClientSecret: os.Getenv("SPOTIFY_CLIENT_SECRET"),
-			RedirectUrl:  os.Getenv("SPOTIFY_REDIRECT_URL"),
+			BaseUrl:      GetVar("SPOTIFY_URL"),
+			TokenUrl:     GetVar("SPOTIFY_TOKEN_URL"),
+			ClientId:     GetVar("SPOTIFY_CLIENT_ID"),
+			ClientSecret: GetVar("SPOTIFY_CLIENT_SECRET"),
+			RedirectUrl:  GetVar("SPOTIFY_REDIRECT_URL"),
 		},
 		Splitflap: SplitFlapConfig{
 			ModuleCount:         count,
 			DriverCount:         count / 6,
-			AlphabetOffset:      os.Getenv("ALPHABET_OFFSET_UPPER") + os.Getenv("ALPHABET_OFFSET_LOWER"),
-			AlphabetCustomOrder: os.Getenv("ALPHABET_CUSTOM_ORDER"),
-			AlphabetESP32Order:  os.Getenv("ALPHABET_ESP32_ORDER"),
+			AlphabetOffset:      GetVar("ALPHABET_OFFSET_UPPER") + GetVar("ALPHABET_OFFSET_LOWER"),
+			AlphabetCustomOrder: GetVar("ALPHABET_CUSTOM_ORDER"),
+			AlphabetESP32Order:  GetVar("ALPHABET_ESP32_ORDER"),
+		},
+		General: General{
+			TimeZone: GetVar("TIMEZONE"),
+			CertFile: GetVar("LETSENCRYPT_CERTFILE"),
+			KeyFile:  GetVar("LETSENCRYPT_KEYFILE"),
 		},
 	}
 
 	if len(cfg.Splitflap.AlphabetOffset) != cfg.Splitflap.ModuleCount {
-		panic("Offset setup doesnt match number of modules")
+		panic("offset setup doesnt match number of modules")
 	} else if len(cfg.Splitflap.AlphabetESP32Order) != len(cfg.Splitflap.AlphabetCustomOrder) {
-		panic("Mismatch between custom alphabet and ESP32 alphabet length")
+		panic("mismatch between custom alphabet and ESP32 alphabet length")
 	}
 
 	return *cfg
+}
+
+func GetVar(str string) string {
+	v := os.Getenv(str)
+	if v == "" {
+		panic(fmt.Sprintf("missing env var: %s", str))
+	}
+
+	return v
 }

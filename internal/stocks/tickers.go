@@ -1,8 +1,6 @@
-package statemachine
+package stocks
 
-import "splitflap-backend/internal/stocks"
-
-var TRACKED_STOCKS = []stocks.Stock{
+var TRACKED_STOCKS = []Stock{
 	{
 		Company:  "Addtech B",
 		AVTicker: "0QI7.LON",

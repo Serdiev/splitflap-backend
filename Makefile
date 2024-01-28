@@ -18,6 +18,3 @@ test:
 
 cert:
 	sudo certbot certonly --standalone
-
-
-# old: CNAME _acme-challengefdev.store.letsencrypt.vdeck.eigdyn.com n/a
