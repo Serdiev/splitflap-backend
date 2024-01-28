@@ -28,7 +28,7 @@ func ParseCRC32EncodedPayload(data []byte) ([]byte, bool) {
 	decoded := cobs.Decode(data)
 	// fmt.Println(decoded)
 	if len(decoded) == 0 {
-		log.Info().Msgf("Empty after decode")
+		log.Info().Int("len", len(data)).Int("decoede", len(decoded)).Msgf("Empty after decode")
 		return []byte{}, false
 	}
 

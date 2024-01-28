@@ -38,11 +38,16 @@ func send() {
 
 	// sf.Calibrate()
 	// sf.SetText(sender.MapForSending("ready or notfugees      "))
-	// sf.SetText(sender.MapForSending(strings.Repeat("a", 24)))
-	sf.SetText(utils.MapForSending(strings.Repeat("a", 24)))
+	// // sf.SetText(sender.MapForSending(strings.Repeat("a", 24)))
+	// sf.SetText(utils.MapForSending(strings.Repeat("l", 24)))
+	// time.Sleep(5 * time.Second)
+	// sf.SetText(utils.MapForSending(cfg.Splitflap.AlphabetOffset))
+	sf.SetText(utils.MapForSending(strings.Repeat("%", 24)))
 	time.Sleep(5 * time.Second)
-	fmt.Println(" mellanslag ")
-	sf.SetText(utils.MapForSending(strings.Repeat(" ", 24)))
+	sf.SetText(utils.MapForSending(strings.Repeat(",", 24)))
+	time.Sleep(5 * time.Second)
+	sf.SetText(utils.MapForSending(strings.Repeat(":", 24)))
+	// fmt.Println(" mellanslag ")
 	// spaces := sender.MapForSending(strings.Repeat(" ", 24))
 	// fmt.Println(spaces)
 	// spaces := sender.MapForSending(strings.Repeat(" ", 24))
@@ -69,15 +74,14 @@ func alphabet(sf *usb_serial.Splitflap) {
 }
 
 func alphabetInOrder(sf *usb_serial.Splitflap) {
+	sf.SetText(utils.MapForSending(strings.Repeat(" ", 24)))
 	time.Sleep(5 * time.Second)
 	for i := 0; i < len(utils.IndexToLetterMap); i++ {
 		letter := utils.IndexToLetterMap[i]
-		sf.SetText(utils.MapForSending(strings.Repeat(letter, 24)))
-		fmt.Println(strings.Repeat(letter, 24))
-		time.Sleep(5 * time.Second)
-
-		sf.SetText(utils.MapForSending(strings.Repeat(" ", 24)))
-		fmt.Println(strings.Repeat(letter, 24))
+		err := sf.SetText(utils.MapForSending(strings.Repeat(letter, 24)))
+		if err != nil {
+			log.Info().Err(err).Msg("hmm")
+		}
 		time.Sleep(2 * time.Second)
 	}
 }

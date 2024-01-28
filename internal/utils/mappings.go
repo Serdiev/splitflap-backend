@@ -105,11 +105,12 @@ func createIndexToLetterMap() map[int]string {
 
 func MapForSending(s string) string {
 	output := s
+	output = strings.ToLower(output)
 	output = ReplaceDisallowedLetters(output)
 	output = SpoolOffsetMapping(output)
 	output = AdjustWireMapping(output)
 	output = MapToArduinoLetters(output)
-	fmt.Println(output)
+	fmt.Printf("Output: <%s>", output)
 	return output
 }
 

@@ -2,7 +2,6 @@ package usb_serial
 
 import (
 	"errors"
-	"fmt"
 	"math/rand"
 	config "splitflap-backend/configs"
 	"splitflap-backend/internal/sp"
@@ -85,17 +84,10 @@ func (sf *Splitflap) initializeModuleList(moduleCount int) {
 func (sf *Splitflap) readLoop() {
 	log.Info().Msg("Read loop started")
 	buffer := []byte{}
-	// next := time.Now()
 	for {
 		if !sf.run {
 			return
 		}
-
-		// TODO: remove
-		// if time.Now().Before(next) {
-		// 	continue
-		// }
-		// next = time.Now().Add(time.Second * 1)
 
 		newBytes, err := sf.serial.Read()
 		if err != nil {
@@ -107,17 +99,12 @@ func (sf *Splitflap) readLoop() {
 			continue
 		}
 
-		// log.Info().Interface("bytes", string(newBytes)).Msg("Got some data!")
 		buffer = append(buffer, newBytes...)
-
 		lastByte := buffer[len(buffer)-1]
 		if lastByte != 0 {
-			// no data or data stream not ready
-			// log.Info().Msg("not end of message yet")
 			continue
 		}
 
-		// log.Info().Msg("got buffer values")
 		sf.processFrame(buffer[:len(buffer)-1])
 		buffer = []byte{}
 	}
@@ -129,14 +116,12 @@ func (sf *Splitflap) processFrame(decoded []byte) {
 		return
 	}
 
-	// log.Info().Msg("Got valid crc32")
 	message := &sp.FromSplitflap{}
 
 	if err := proto.Unmarshal(payload, message); err != nil {
 		log.Info().Msgf("Failed to unmarshal message: %v\n", err)
 		return
 	}
-	// log.Info().Msgf("Received message %v\n", message)
 	message.PrintSplitflapState()
 
 	switch message.GetPayload().(type) {
@@ -152,12 +137,6 @@ func (sf *Splitflap) processFrame(decoded []byte) {
 			log.Info().Msgf("Number of reported modules changed (was %d, now %d)\n", sf.numModules, numModulesReported)
 		}
 	}
-
-	// sf.lock.Lock()
-	// defer sf.lock.Unlock()
-
-	// handler := sf.messageHandlers[message.GetPayloadType()]
-	// handler(message.GetPayload())
 }
 
 func (sf *Splitflap) waitingForOutgoingMessage() bool {
@@ -268,11 +247,11 @@ func (sf *Splitflap) setPositions(positions []uint32, forceMovementList []bool) 
 	defer sf.lock.Unlock()
 
 	if sf.numModules == 0 {
-		return errors.New("Cannot set positions before the number of modules is known")
+		return errors.New("cannot set positions before the number of modules is known")
 	}
 
 	if len(positions) > sf.numModules {
-		return errors.New("More positions specified than modules")
+		return errors.New("more positions specified than modules")
 	}
 
 	if forceMovementList != nil && len(positions) != len(forceMovementList) {
@@ -280,13 +259,10 @@ func (sf *Splitflap) setPositions(positions []uint32, forceMovementList []bool) 
 	}
 
 	for i := 0; i < len(positions); i++ {
-		if positions[i] != 0 {
-			sf.currentConfig.Modules[i].TargetFlapIndex = positions[i]
-		}
+		sf.currentConfig.Modules[i].TargetFlapIndex = positions[i]
 		if forceMovementList != nil && forceMovementList[i] {
 			sf.currentConfig.Modules[i].MovementNonce = (sf.currentConfig.Modules[i].MovementNonce + 1) % 256
 		}
-		fmt.Printf("%v - nonce: %v - target: %v\n", i, sf.currentConfig.Modules[i].MovementNonce, sf.currentConfig.Modules[i].TargetFlapIndex)
 	}
 
 	message := &sp.ToSplitflap{
