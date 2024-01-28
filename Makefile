@@ -1,8 +1,9 @@
 build:
-	go build -o bin/main cmd/splitflap/main.go
+	env GOOS=linux GOARCH=arm GOARM=7 go build -o bin/test cmd/splitflap/main.go
+# # CC=arm-linux-gnueabihf-gcc CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7 go build -o bin/main cmd/splitflap/main.go
 
 run:
-	go run cmd/splitflap/main.go
+	GOOS=linux GOARCH=arm64 go run cmd/splitflap/main.go
 
 sand:
 	go run cmd/sandbox/main.go
@@ -13,3 +14,10 @@ runn:
 
 test:
 	go test ./...
+
+
+cert:
+	sudo certbot certonly --standalone
+
+
+# old: CNAME _acme-challengefdev.store.letsencrypt.vdeck.eigdyn.com n/a
