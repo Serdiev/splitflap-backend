@@ -19,7 +19,7 @@ const (
 	ForceMovementNone         ForceMovement = "none"
 	ForceMovementOnlyNonBlank ForceMovement = "only_non_blank"
 	ForceMovementAll          ForceMovement = "all"
-	RetryTime                               = time.Millisecond * 5000
+	RetryTime                               = time.Millisecond * 500
 )
 
 type ForceMovement string
