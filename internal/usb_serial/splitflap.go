@@ -4,7 +4,7 @@ import (
 	"errors"
 	"math/rand"
 	config "splitflap-backend/configs"
-	"splitflap-backend/internal/sp"
+	gen "splitflap-backend/internal/generated"
 	"splitflap-backend/internal/utils"
 	"sync"
 	"time"
@@ -36,8 +36,8 @@ type Splitflap struct {
 	nextNonce       uint32
 	run             bool
 	lock            sync.Mutex
-	messageHandlers map[sp.SplitFlapType]func(interface{})
-	currentConfig   *sp.SplitflapConfig
+	messageHandlers map[gen.SplitFlapType]func(interface{})
+	currentConfig   *gen.SplitflapConfig
 	numModules      int
 	alphabet        []rune
 }
@@ -54,7 +54,7 @@ func NewSplitflap(serialInstance SerialConnection) *Splitflap {
 		ackQueue:        make(chan uint32, 100),
 		nextNonce:       uint32(rand.Intn(256)),
 		run:             true,
-		messageHandlers: make(map[sp.SplitFlapType]func(interface{})),
+		messageHandlers: make(map[gen.SplitFlapType]func(interface{})),
 		currentConfig:   nil,
 		alphabet:        alphabet,
 	}
@@ -67,11 +67,11 @@ func NewSplitflap(serialInstance SerialConnection) *Splitflap {
 
 func (sf *Splitflap) initializeModuleList(moduleCount int) {
 	sf.numModules = moduleCount
-	sf.currentConfig = &sp.SplitflapConfig{
-		Modules: []*sp.SplitflapConfig_ModuleConfig{},
+	sf.currentConfig = &gen.SplitflapConfig{
+		Modules: []*gen.SplitflapConfig_ModuleConfig{},
 	}
 	for i := 0; i < moduleCount; i++ {
-		newModule := sp.SplitflapConfig_ModuleConfig{
+		newModule := gen.SplitflapConfig_ModuleConfig{
 			TargetFlapIndex: 0,
 			MovementNonce:   0,
 			ResetNonce:      0,
@@ -116,7 +116,7 @@ func (sf *Splitflap) processFrame(decoded []byte) {
 		return
 	}
 
-	message := &sp.FromSplitflap{}
+	message := &gen.FromSplitflap{}
 
 	if err := proto.Unmarshal(payload, message); err != nil {
 		log.Info().Msgf("Failed to unmarshal message: %v\n", err)
@@ -125,10 +125,10 @@ func (sf *Splitflap) processFrame(decoded []byte) {
 	message.PrintSplitflapState()
 
 	switch message.GetPayload().(type) {
-	case *sp.FromSplitflap_Ack:
+	case *gen.FromSplitflap_Ack:
 		nonce := message.GetAck().GetNonce()
 		sf.ackQueue <- nonce
-	case *sp.FromSplitflap_SplitflapState:
+	case *gen.FromSplitflap_SplitflapState:
 		numModulesReported := len(message.GetSplitflapState().GetModules())
 
 		if sf.numModules == 0 {
@@ -157,7 +157,6 @@ func (sf *Splitflap) writeLoop() {
 		}
 
 		if sf.waitingForOutgoingMessage() {
-			// log.Info().Msg("waiting for outgoing messages")
 			continue
 		}
 
@@ -176,7 +175,6 @@ func (sf *Splitflap) writeLoop() {
 					log.Info().Msg("Write message again")
 				}
 				writeCount++
-				// log.Info().Msgf("Writing message %x", enqueuedMessage.bytes)
 				sf.serial.Write(enqueuedMessage.bytes)
 				nextRetry = time.Now().Add(RetryTime)
 			}
@@ -186,19 +184,11 @@ func (sf *Splitflap) writeLoop() {
 			}
 
 			latestAckNonce := <-sf.ackQueue
-			// log.Info().Msgf("nonce: %d", latestAckNonce)
 			if enqueuedMessage.nonce == latestAckNonce {
-				// log.Info().Msg("Correct nonce, breaking")
 				break
 			}
-
-			// log.Info().Msgf("Got unexpected nonce: %d\n", latestAckNonce)
 		}
 	}
-}
-
-func (sf *Splitflap) Calibrate() {
-	sf.serial.Write([]byte("@"))
 }
 
 func (sf *Splitflap) SetText(text string) error {
@@ -265,8 +255,8 @@ func (sf *Splitflap) setPositions(positions []uint32, forceMovementList []bool) 
 		}
 	}
 
-	message := &sp.ToSplitflap{
-		Payload: &sp.ToSplitflap_SplitflapConfig{
+	message := &gen.ToSplitflap{
+		Payload: &gen.ToSplitflap_SplitflapConfig{
 			SplitflapConfig: sf.currentConfig,
 		},
 	}
@@ -275,7 +265,7 @@ func (sf *Splitflap) setPositions(positions []uint32, forceMovementList []bool) 
 	return nil
 }
 
-func (sf *Splitflap) enqueueMessage(message *sp.ToSplitflap) {
+func (sf *Splitflap) enqueueMessage(message *gen.ToSplitflap) {
 	message.Nonce = sf.nextNonce
 	sf.nextNonce++
 
@@ -301,9 +291,9 @@ func (sf *Splitflap) enqueueMessage(message *sp.ToSplitflap) {
 }
 
 func (sf *Splitflap) requestState() {
-	message := sp.ToSplitflap{}
-	message.Payload = &sp.ToSplitflap_RequestState{
-		RequestState: &sp.RequestState{},
+	message := gen.ToSplitflap{}
+	message.Payload = &gen.ToSplitflap_RequestState{
+		RequestState: &gen.RequestState{},
 	}
 
 	sf.enqueueMessage(&message)

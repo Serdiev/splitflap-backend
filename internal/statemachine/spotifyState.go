@@ -32,7 +32,6 @@ func (s *StateHandler) initSpotifyStateHandler() bool {
 	// set state to handle spotify and initiate spotify handler
 	s.App.SetState(h.Spotify)
 	go s.handleSpotifyState()
-	fmt.Println("Starting spotify handler")
 	return true
 }
 
@@ -46,12 +45,12 @@ func (s *StateHandler) handleSpotifyState() {
 
 		playing, _ := s.App.Spotify.GetCurrentlyPlaying()
 		if playing == nil {
-			s.App.SetToIdleState()
+			s.App.SetToIdleState("playing nil")
 			return
 		}
 
 		msg := getPlayingText(playing)
-		s.App.Sender.SendMessage(msg)
+		s.App.Sender.SendMessage(msg, "spotify playing")
 	}
 }
 
@@ -62,7 +61,6 @@ func getPlayingText(playing *models.SpotifyIsPlaying) string {
 		text.TopRight(playing.Artist)
 
 		sliderText := BottomSlider(playing.PercentageLeft())
-		fmt.Println(sliderText)
 		text.BottomLeft(sliderText)
 	} else {
 		text.TopLeft(playing.Song)

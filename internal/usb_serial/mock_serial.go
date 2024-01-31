@@ -1,7 +1,7 @@
 package usb_serial
 
 import (
-	"splitflap-backend/internal/sp"
+	gen "splitflap-backend/internal/generated"
 	"splitflap-backend/internal/utils"
 
 	"github.com/rs/zerolog/log"
@@ -53,9 +53,9 @@ func (m *MockConnection) Close() error {
 
 func fakeOKAckMessage(bytes []byte) {
 	nonce := getNonceFromWriteMsg(bytes[:len(bytes)-1])
-	ackMsg := sp.FromSplitflap{
-		Payload: &sp.FromSplitflap_Ack{
-			Ack: &sp.Ack{
+	ackMsg := gen.FromSplitflap{
+		Payload: &gen.FromSplitflap_Ack{
+			Ack: &gen.Ack{
 				Nonce: nonce,
 			},
 		},
@@ -76,7 +76,7 @@ func getNonceFromWriteMsg(bytes []byte) uint32 {
 		panic("invalid crc32")
 	}
 
-	message := &sp.ToSplitflap{}
+	message := &gen.ToSplitflap{}
 
 	if err := proto.Unmarshal(payload, message); err != nil {
 		log.Info().Msgf("Failed to unmarshal message: %v\n", err)

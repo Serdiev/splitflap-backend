@@ -1,43 +1,39 @@
 package statemachine
 
 import (
-	"fmt"
 	"splitflap-backend/internal/stocks"
 	"splitflap-backend/internal/utils"
 	"time"
 )
 
-var hasDisplayedToday = false
+var nextRun = utils.GetTodayAt(18, 0).Add(time.Hour * 24)
 
 func (s *StateHandler) initAvanzaHandler() bool {
-	// only display once per day
-	if hasDisplayedToday {
+	// only display once per day (and not within 1 hr of starting app)
+	if time.Now().Before(nextRun) {
 		return false
 	}
 
-	// automatically print
-	if time.Now().Before(utils.GetTodayAt(18, 0)) {
-		return false
-	}
-
-	hasDisplayedToday = true
+	nextRun = utils.GetTodayAt(18, 0).Add(time.Hour * 24)
 	go s.handleStocksState()
 	return true
 }
 
-func (s *StateHandler) handleStocksState() bool {
+func (s *StateHandler) handleStocksState() {
 	for _, stock := range stocks.TRACKED_STOCKS {
 		info, err := s.App.Stocks.GetStockInfo(stock)
-		fmt.Println(info, err)
 		if err != nil {
-			fmt.Println(err)
+			return
 		}
 
 		text := utils.NewText()
 		text.TopLeft(info.CompanyName)
+		text.BottomRight(info.GetToday())
 
-		// text.BottomLeft(info.YTD)
+		s.App.Sender.SendMessage(text.GetText(), "set stock")
+
+		time.Sleep(10 * time.Second)
 	}
 
-	return true
+	s.App.SetToIdleState("stock ending")
 }

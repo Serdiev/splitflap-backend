@@ -5,7 +5,6 @@ import (
 	"hash/crc32"
 
 	"github.com/dim13/cobs"
-	"github.com/rs/zerolog/log"
 )
 
 // Adds CRC32 checksum + null ending
@@ -26,16 +25,13 @@ func CalculateCRC32(data []byte) uint32 {
 
 func ParseCRC32EncodedPayload(data []byte) ([]byte, bool) {
 	decoded := cobs.Decode(data)
-	// fmt.Println(decoded)
 	if len(decoded) == 0 {
-		log.Info().Int("len", len(data)).Int("decoede", len(decoded)).Msgf("Empty after decode")
 		return []byte{}, false
 	}
 
 	decoded = decoded[:len(decoded)-1]
 
 	if len(decoded) < 4 {
-		log.Info().Msg("< 4 bytes")
 		return []byte{}, false
 	}
 
@@ -46,7 +42,7 @@ func ParseCRC32EncodedPayload(data []byte) ([]byte, bool) {
 	expectedCRC := CalculateCRC32(payload)
 	providedCRC := binary.LittleEndian.Uint32(crc32bytes)
 	if expectedCRC != providedCRC {
-		log.Info().Msgf("Bad CRC. expected=%#x, actual=%#x\n", expectedCRC, providedCRC)
+		// log.Info().Msgf("Bad CRC. expected=%#x, actual=%#x\n", expectedCRC, providedCRC)
 		return []byte{}, false
 	}
 

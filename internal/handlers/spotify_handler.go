@@ -17,6 +17,15 @@ import (
 	"golang.org/x/oauth2"
 )
 
+func (a *Application) GetCurrentlyPlaying(c *gin.Context) {
+	playing, err := a.Spotify.GetCurrentlyPlaying()
+
+	fmt.Println(playing)
+	fmt.Println(err)
+
+	c.JSON(http.StatusOK, playing)
+}
+
 type SpotifyClient interface {
 	IsLoggedIn() bool
 	GetCurrentlyPlaying() (*models.SpotifyIsPlaying, error)
@@ -57,10 +66,6 @@ func (a *Application) SpotifyLoginCallback(c *gin.Context) {
 	tokenSrc := oauth2.ReuseTokenSourceWithExpiry(auth, &tokenSource, time.Second*30)
 	client := oauth2.NewClient(c, tokenSrc)
 	a.Spotify = spotify.NewSpotifyClient(client)
-
-	aa, b := a.Spotify.GetCurrentlyPlaying()
-
-	fmt.Println(aa, b)
 	c.Redirect(307, "/?message=logged_in")
 }
 

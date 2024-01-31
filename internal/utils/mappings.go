@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	config "splitflap-backend/configs"
 	"strings"
 )
@@ -105,23 +104,26 @@ func createIndexToLetterMap() map[int]string {
 
 func MapForSending(s string) string {
 	output := s
+	output = PadWithSpaces(output)
 	output = strings.ToLower(output)
 	output = ReplaceDisallowedLetters(output)
 	output = SpoolOffsetMapping(output)
 	output = AdjustWireMapping(output)
 	output = MapToArduinoLetters(output)
-	fmt.Printf("Output: <%s>", output)
 	return output
 }
 
-func ReplaceDisallowedLetters(s string) string {
-	output := s
-	output = strings.ReplaceAll(output, "o", "0")
-	output = strings.ReplaceAll(output, "z", "s")
-	output = strings.ReplaceAll(output, "å", "a")
-	output = strings.ReplaceAll(output, "ä", "a")
-	output = strings.ReplaceAll(output, "ö", "o")
-	return output
+func PadWithSpaces(text string) string {
+	length := cfg.Splitflap.ModuleCount
+	if len(text) > length {
+		// Truncate if too long
+		return text[:length]
+	} else if len(text) < length {
+		// Pad with spaces if too short
+		return text + strings.Repeat(" ", length-len(text))
+	}
+	// Return unchanged text if already the desired length
+	return text
 }
 
 // adjust wiring (order on drivers => text in order)

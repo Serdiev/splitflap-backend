@@ -1,14 +1,13 @@
-package routes
+package handlers
 
 import (
 	"net/http"
-	"splitflap-backend/internal/handlers"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRouting(a *handlers.Application) *gin.Engine {
+func SetupRouting(a *Application) *gin.Engine {
 
 	r := gin.Default()
 	config := cors.Config{
@@ -24,6 +23,9 @@ func SetupRouting(a *handlers.Application) *gin.Engine {
 	r.GET("/playing", a.GetCurrentlyPlaying)
 
 	r.POST("/message", a.SendMessage)
+
+	r.POST("/actions", a.ExecuteAction)
+	r.GET("/actions", a.GetActions)
 
 	// host webpage to interact
 	r.LoadHTMLGlob("html/*.html")

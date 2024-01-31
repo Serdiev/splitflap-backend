@@ -7,6 +7,7 @@ import (
 	"net/http"
 	config "splitflap-backend/configs"
 	"splitflap-backend/internal/models"
+	"splitflap-backend/internal/utils"
 	"time"
 )
 
@@ -69,10 +70,9 @@ func (sc SpotifyClient) GetCurrentlyPlaying() (*models.SpotifyIsPlaying, error) 
 		return nil, fmt.Errorf("failed to parse API response: %w", err)
 	}
 
-	fmt.Println(string(bytes))
+	// fmt.Println(string(bytes))
 	if spotifyResp.IsPlaying {
 		dto := mapToDto(spotifyResp)
-		fmt.Println(dto)
 		return dto, nil
 	}
 
@@ -84,8 +84,8 @@ func mapToDto(resp SpotifyResponse) *models.SpotifyIsPlaying {
 
 	if resp.CurrentlyPlayingType == "episode" {
 		return &models.SpotifyIsPlaying{
-			Song:        resp.Item.Name,
-			Artist:      resp.Item.Show.Name,
+			Song:        utils.ReplaceDisallowedLetters(resp.Item.Name),
+			Artist:      utils.ReplaceDisallowedLetters(resp.Item.Show.Name),
 			ProgressMs:  asSeconds(resp.ProgressMS),
 			DurationMs:  asSeconds(resp.Item.DurationMS),
 			SecondsLeft: secondsLeft,
@@ -94,14 +94,15 @@ func mapToDto(resp SpotifyResponse) *models.SpotifyIsPlaying {
 	}
 
 	return &models.SpotifyIsPlaying{
-		Song:        resp.Item.Name,
-		Artist:      resp.Item.Artists[0].Name,
+		Song:        utils.ReplaceDisallowedLetters(resp.Item.Name),
+		Artist:      utils.ReplaceDisallowedLetters(resp.Item.Artists[0].Name),
 		ProgressMs:  asSeconds(resp.ProgressMS),
 		DurationMs:  asSeconds(resp.Item.DurationMS),
 		SecondsLeft: secondsLeft,
 		TimeLeft:    formatSecondsToMMSS(secondsLeft),
 	}
 }
+
 func asSeconds(ms int64) int {
 	return int(ms / 1000)
 }

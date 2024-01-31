@@ -74,3 +74,18 @@ func truncate(text string, length int) string {
 
 	return text
 }
+
+func ReplaceDisallowedLetters(s string) string {
+	output := s
+	output = strings.ReplaceAll(output, ";", ":")
+	output = strings.ReplaceAll(output, ".", ",")
+	output = strings.ReplaceAll(output, "o", "0")
+	output = strings.ReplaceAll(output, "z", "s")
+	output = strings.ReplaceAll(output, "å", "a")
+	output = strings.ReplaceAll(output, "ä", "a")
+	output = strings.ReplaceAll(output, "ö", "o")
+	output = strings.ReplaceAll(output, "é", "e")
+	output = strings.ReplaceAll(output, "á", "a")
+	output = strings.ReplaceAll(output, "–", "-")
+	return output
+}

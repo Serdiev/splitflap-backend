@@ -6,7 +6,6 @@ import (
 	"net/http"
 	config "splitflap-backend/configs"
 	"splitflap-backend/internal/handlers"
-	"splitflap-backend/internal/routes"
 	"splitflap-backend/internal/statemachine"
 	"splitflap-backend/internal/utils"
 )
@@ -20,7 +19,7 @@ func main() {
 	c := context.Background()
 	app = handlers.CreateService(c)
 
-	r := routes.SetupRouting(&app)
+	r := handlers.SetupRouting(&app)
 
 	go statemachine.Initiate(&app)
 

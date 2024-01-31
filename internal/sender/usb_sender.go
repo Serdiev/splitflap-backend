@@ -30,13 +30,14 @@ func NewUsbSerialSender() *UsbSerialSender {
 }
 
 // SendMessage sends the given text over the serial usb
-func (m *UsbSerialSender) SendMessage(text string) error {
+func (m *UsbSerialSender) SendMessage(text string, sentBy string) error {
 	if m.CurrentText == text {
 		return nil
 	}
 
 	m.CurrentText = text
 
+	fmt.Println("Sent by:", sentBy)
 	fmt.Println("upper:", text[0:12])
 	fmt.Println("lower:", text[12:])
 

@@ -19,7 +19,7 @@ func (c AvanzaClient) GetStockInfo(s Stock) (*models.StockInfo, error) {
 		return nil, err
 	}
 
-	ytd := (data.Quote.Last / data.HistoricalClosingPrices.StartOfYear) - 1
+	ytd := 100 * ((data.Quote.Last - data.HistoricalClosingPrices.StartOfYear) / data.HistoricalClosingPrices.StartOfYear)
 
 	info := models.StockInfo{
 		CompanyName: s.Company,
@@ -30,7 +30,6 @@ func (c AvanzaClient) GetStockInfo(s Stock) (*models.StockInfo, error) {
 	return &info, nil
 }
 
-// TimeSeries gets daily, weekly and monthly series
 func (c AvanzaClient) getStockData(avanzaID string) (*AvanzaResponse, error) {
 	url := fmt.Sprintf("https://www.avanza.se/_api/market-guide/stock/%s", avanzaID)
 	var series AvanzaResponse

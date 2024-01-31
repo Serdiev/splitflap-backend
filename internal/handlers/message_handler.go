@@ -18,7 +18,7 @@ func (a *Application) SendMessage(c *gin.Context) {
 		return
 	}
 
-	a.Sender.SendMessage(request.Message)
+	a.Sender.SendMessage(request.Message, "sendmessage handler")
 
 	c.JSON(http.StatusOK, request)
 }

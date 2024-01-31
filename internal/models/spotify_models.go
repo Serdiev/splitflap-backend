@@ -13,9 +13,3 @@ func (s *SpotifyIsPlaying) PercentageLeft() int {
 	pct := s.ProgressMs * 100 / s.DurationMs
 	return pct
 }
-
-type StockInfo struct {
-	CompanyName string
-	DailyChange float64
-	YTD         float64
-}

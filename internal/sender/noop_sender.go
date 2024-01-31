@@ -8,6 +8,6 @@ func NewNoopSender() *NoopSender {
 }
 
 // SendMessage sends the given text over the serial usb
-func (m *NoopSender) SendMessage(text string) error {
+func (m *NoopSender) SendMessage(text string, sentBy string) error {
 	return nil
 }
