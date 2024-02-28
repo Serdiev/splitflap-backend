@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	config "splitflap-backend/configs"
+	"splitflap-backend/internal/handlers"
 	"splitflap-backend/internal/usb_serial"
 	"splitflap-backend/internal/utils"
 	"strings"
@@ -14,18 +16,43 @@ import (
 
 var cfg = config.New()
 
+func removeValue(slice []int, valueToRemove int) []int {
+	var result []int
+
+	for _, v := range slice {
+		if v != valueToRemove {
+			result = append(result, v)
+		}
+	}
+
+	return result
+}
+
+func matrixReplacement(textBefore string, newText string) {
+	currentText := textBefore
+	indexesLeft := []int{}
+	for i := 0; i < cfg.Splitflap.ModuleCount; i++ {
+		indexesLeft = append(indexesLeft, i)
+	}
+
+	lettersPerRun := 4
+	for i := 0; i < cfg.Splitflap.ModuleCount/lettersPerRun; i++ {
+		fmt.Println("new run:")
+		// pick 4
+		for i := 0; i < lettersPerRun; i++ {
+			randomIndex := indexesLeft[rand.Intn(len(indexesLeft))]
+			fmt.Println(randomIndex)
+			currentText = replaceAt(currentText, randomIndex, rune(newText[randomIndex]))
+			indexesLeft = removeValue(indexesLeft, randomIndex)
+		}
+
+		fmt.Println(currentText)
+	}
+}
+
 func main() {
-
-	// utils.SetTimeZone()
-
-	// a := stocks.NewAvanzaClient()
-	// r, err := a.GetStockInfo(stocks.TRACKED_STOCKS[1])
-
-	// fmt.Println(r)
-	// fmt.Println(r.GetYTD())
-	// fmt.Println(err)
-	// fmt.Println(time.Now())
-	send()
+	send2()
+	// matrixReplacement(strings.Repeat(" ", cfg.Splitflap.ModuleCount), strings.Repeat("a", cfg.Splitflap.ModuleCount))
 }
 
 func replaceAt(s string, i int, c rune) string {
@@ -34,6 +61,28 @@ func replaceAt(s string, i int, c rune) string {
 	return string(r)
 }
 
+func send2() {
+
+	app := handlers.CreateService(context.Background())
+
+	app.Sender.SendMessage(strings.Repeat(" ", cfg.Splitflap.ModuleCount), "sand")
+	time.Sleep(5 * time.Second)
+	app.Sender.SendMessage(strings.Repeat("x", cfg.Splitflap.ModuleCount), "sand")
+	// for i := 1; i < cfg.Splitflap.ModuleCount+1; i++ {
+	// 	sf.SetText(utils.MapForSending(strings.Repeat("a", i)))
+	// 	time.Sleep(20 * time.Millisecond)
+	// }
+
+	// sf.SetText(utils.MapForSending(strings.Repeat("%", 24)))
+	// time.Sleep(5 * time.Second)
+	// sf.SetText(utils.MapForSending(strings.Repeat(",", 24)))
+	// time.Sleep(5 * time.Second)
+	// sf.SetText(utils.MapForSending(strings.Repeat(":", 24)))
+	// // alphabet(sf)
+	// alphabetInOrder(sf)
+
+	time.Sleep(30 * time.Second)
+}
 func send() {
 	connection := usb_serial.NewSerialConnection()
 	// connection := usb_serial.NewMockConnection()
@@ -46,11 +95,13 @@ func send() {
 	sf.Start()
 	defer sf.Shutdown()
 
+	sf.SetText(utils.MapForSending(strings.Repeat(" ", cfg.Splitflap.ModuleCount)))
 	time.Sleep(2 * time.Second)
-	for i := 1; i < cfg.Splitflap.ModuleCount+1; i++ {
-		sf.SetText(utils.MapForSending(strings.Repeat("a", i)))
-		time.Sleep(200 * time.Millisecond)
-	}
+	sf.SetText(utils.MapForSending(strings.Repeat("x", cfg.Splitflap.ModuleCount)))
+	// for i := 1; i < cfg.Splitflap.ModuleCount+1; i++ {
+	// 	sf.SetText(utils.MapForSending(strings.Repeat("a", i)))
+	// 	time.Sleep(20 * time.Millisecond)
+	// }
 
 	// sf.SetText(utils.MapForSending(strings.Repeat("%", 24)))
 	// time.Sleep(5 * time.Second)
