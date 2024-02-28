@@ -1,14 +1,13 @@
 package handlers
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"splitflap-backend/internal/models"
 	"splitflap-backend/internal/spotify"
+	fluent "splitflap-backend/pkg"
 	"strings"
 	"sync"
 	"time"
@@ -56,6 +55,7 @@ func (a *Application) SpotifyLoginCallback(c *gin.Context) {
 	}
 
 	auth := GetInitialAccessToken(code)
+	fmt.Println(auth)
 	if auth == nil {
 		c.Redirect(307, "/")
 		return
@@ -66,6 +66,7 @@ func (a *Application) SpotifyLoginCallback(c *gin.Context) {
 	tokenSrc := oauth2.ReuseTokenSourceWithExpiry(auth, &tokenSource, time.Second*30)
 	client := oauth2.NewClient(c, tokenSrc)
 	a.Spotify = spotify.NewSpotifyClient(client)
+
 	c.Redirect(307, "/?message=logged_in")
 }
 
@@ -75,47 +76,28 @@ func GetInitialAccessToken(code string) *oauth2.Token {
 	formData.Set("redirect_uri", cfg.Spotify.RedirectUrl)
 	formData.Set("grant_type", "authorization_code")
 
-	// Create the HTTP request
-	req, err := http.NewRequest("POST", cfg.Spotify.TokenUrl, strings.NewReader(formData.Encode()))
-	if err != nil {
-		fmt.Println("Error creating request:", err)
-		return nil
-	}
+	token := oauth2.Token{}
 
-	// Set the headers
-	authHeader := "Basic " + base64.StdEncoding.EncodeToString([]byte(cfg.Spotify.ClientId+":"+cfg.Spotify.ClientSecret))
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("Authorization", authHeader)
+	err := fluent.Post(cfg.Spotify.TokenUrl, []byte(formData.Encode())).
+		WithClientCredentials(cfg.Spotify.ClientId, cfg.Spotify.ClientSecret).
+		WithContentType("application/x-www-form-urlencoded").
+		OnSuccess(func(bytes []byte) error {
+			innerErr := json.Unmarshal(bytes, &token)
 
-	// Send the request
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println("Error making request:", err)
-		return nil
-	}
-	defer resp.Body.Close()
+			if innerErr != nil {
+				return innerErr
+			}
 
-	respBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil
-	}
-
-	// Check the response status code
-	if resp.StatusCode != http.StatusOK {
-		fmt.Println("Request failed with status code:", resp.StatusCode)
-		return nil
-	}
-
-	auth := oauth2.Token{}
-
-	err = json.Unmarshal(respBody, &auth)
+			return nil
+		}).
+		Execute()
 
 	if err != nil {
 		return nil
 	}
 
-	return &auth
+	fmt.Println("okay", token)
+	return &token
 }
 
 func CreateSpotifyTokenSource(token oauth2.Token) SpotifyTokenSource {
@@ -172,6 +154,7 @@ func (sts *SpotifyTokenSource) Token() (*oauth2.Token, error) {
 
 	// Update the token
 	sts.token = &token
+	sts.token.RefreshToken = token.RefreshToken
 
 	return &token, nil
 }
