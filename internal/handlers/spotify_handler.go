@@ -2,17 +2,18 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
 	"splitflap-backend/internal/models"
 	"splitflap-backend/internal/spotify"
-	fluent "splitflap-backend/pkg"
-	"strings"
+	"splitflap-backend/pkg/fluent"
 	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog/log"
 	"golang.org/x/oauth2"
 )
 
@@ -48,22 +49,16 @@ func (a *Application) SpotifyLogin(c *gin.Context) {
 
 func (a *Application) SpotifyLoginCallback(c *gin.Context) {
 	code := c.Query("code")
-	if code == "" {
-		// c.JSON(http.StatusOK, "could not login, did not receive code")
-		c.Redirect(307, "/")
-		return
-	}
-
 	auth := GetInitialAccessToken(code)
-	fmt.Println(auth)
 	if auth == nil {
 		c.Redirect(307, "/")
 		return
 	}
 
+	auth.Expiry = time.Now().Add(time.Second * 3600)
 	tokenSource := CreateSpotifyTokenSource(*auth)
 
-	tokenSrc := oauth2.ReuseTokenSourceWithExpiry(auth, &tokenSource, time.Second*30)
+	tokenSrc := oauth2.ReuseTokenSourceWithExpiry(auth, &tokenSource, time.Minute*10)
 	client := oauth2.NewClient(c, tokenSrc)
 	a.Spotify = spotify.NewSpotifyClient(client)
 
@@ -116,45 +111,42 @@ func (sts *SpotifyTokenSource) Token() (*oauth2.Token, error) {
 	sts.mutex.Lock()
 	defer sts.mutex.Unlock()
 
-	// If the token is still valid, return it
 	if sts.token.Valid() {
 		return sts.token, nil
 	}
 
-	// Otherwise, refresh the token
+	newToken := getNewToken(sts.token.RefreshToken)
+	if newToken == nil {
+		return nil, errors.New("failed to get token")
+	}
+
+	sts.token.AccessToken = newToken.AccessToken
+	return newToken, nil
+}
+
+func getNewToken(refreshToken string) *oauth2.Token {
 	formData := url.Values{}
-	formData.Set("refresh_token", sts.token.RefreshToken)
+	formData.Set("client_id", cfg.Spotify.ClientId)
+	formData.Set("refresh_token", refreshToken)
 	formData.Set("grant_type", "refresh_token")
 
-	// Create the HTTP request
-	req, err := http.NewRequest("POST", cfg.Spotify.TokenUrl, strings.NewReader(formData.Encode()))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-
-	// Set the headers
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-	// Send the request
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch access token: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("invalid response status code: %d", resp.StatusCode)
-	}
-
 	var token oauth2.Token
-	err = json.NewDecoder(resp.Body).Decode(&token)
+	err := fluent.Post(cfg.Spotify.TokenUrl, []byte(formData.Encode())).
+		WithContentType("application/x-www-form-urlencoded").
+		WithClientCredentials(cfg.Spotify.ClientId, cfg.Spotify.ClientSecret).
+		OnSuccess(func(bytes []byte) error {
+			innerToken, innerErr := fluent.BytesToStruct[oauth2.Token](bytes)
+			token = innerToken
+			return innerErr
+		}).
+		Execute()
+
 	if err != nil {
-		return nil, fmt.Errorf("failed to decode access token response: %w", err)
+		log.Error().Err(err).Msg("failed ")
+		return nil
 	}
 
-	// Update the token
-	sts.token = &token
-	sts.token.RefreshToken = token.RefreshToken
-
-	return &token, nil
+	// manually set sincy spotify uses expires_in 3600 instead of expiry in ouath2.token.
+	token.Expiry = time.Now().Add(time.Second * 3600)
+	return &token
 }

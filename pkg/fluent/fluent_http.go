@@ -3,6 +3,7 @@ package fluent
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -33,7 +34,7 @@ func create() *FluentHttp {
 
 func defaultErrorHandler() func(bytes []byte) error {
 	return func(bytes []byte) error {
-		return errors.New("no error handler ")
+		return errors.New(string(bytes))
 	}
 }
 
@@ -125,4 +126,10 @@ func (c *FluentHttp) Execute() error {
 	}
 
 	return c.errorHandler(respBody)
+}
+
+func BytesToStruct[T interface{}](bytes []byte) (T, error) {
+	var resp T
+	err := json.Unmarshal(bytes, &resp)
+	return resp, err
 }
