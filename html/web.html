@@ -93,6 +93,12 @@
         <br>
         <button type="button" onclick="sendMessage()">Send Message</button>
     </form>
+    <div class="flex-column">
+        <div>Messages sent</div>
+        <div id="messages-sent" class="flex-column">
+
+        </div>
+    </div>
 
     <script>
         function sendMessage() {
@@ -110,6 +116,8 @@
                 dataType: "json",
                 success: function (response) {
                     console.log("Message sent successfully:", response);
+                    var newMessageDiv = $("<div>").text(data.message);
+                    $('#messages-sent').append(newMessageDiv);
                     // Handle the success response here
                 },
                 error: function (error) {
