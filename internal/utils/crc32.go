@@ -42,7 +42,7 @@ func ParseCRC32EncodedPayload(data []byte) ([]byte, bool) {
 	expectedCRC := CalculateCRC32(payload)
 	providedCRC := binary.LittleEndian.Uint32(crc32bytes)
 	if expectedCRC != providedCRC {
-		// log.Info().Msgf("Bad CRC. expected=%#x, actual=%#x\n", expectedCRC, providedCRC)
+		// logger.Info().Msgf("Bad CRC. expected=%#x, actual=%#x\n", expectedCRC, providedCRC)
 		return []byte{}, false
 	}
 

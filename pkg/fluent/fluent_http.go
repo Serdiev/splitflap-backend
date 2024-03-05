@@ -128,8 +128,8 @@ func (c *FluentHttp) Execute() error {
 	return c.errorHandler(respBody)
 }
 
-func BytesToStruct[T interface{}](bytes []byte) (T, error) {
-	var resp T
+func BytesToStruct[T interface{}](bytes []byte) (*T, error) {
+	var resp *T
 	err := json.Unmarshal(bytes, &resp)
 	return resp, err
 }

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	config "splitflap-backend/configs"
 	"splitflap-backend/internal/handlers"
+	"splitflap-backend/internal/logger"
 	"splitflap-backend/internal/statemachine"
 	"splitflap-backend/internal/utils"
 )
@@ -15,6 +16,9 @@ var app handlers.Application
 
 func main() {
 	utils.SetTimeZone()
+
+	closeFile := logger.InitiateLogger()
+	defer closeFile()
 
 	c := context.Background()
 	app = handlers.CreateService(c)

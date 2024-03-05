@@ -2,9 +2,9 @@ package usb_serial
 
 import (
 	gen "splitflap-backend/internal/generated"
+	"splitflap-backend/internal/logger"
 	"splitflap-backend/internal/utils"
 
-	"github.com/rs/zerolog/log"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -41,7 +41,7 @@ func (m *MockConnection) Write(data []byte) error {
 func (m *MockConnection) Read() ([]byte, error) {
 	buffer := mockInBuffer
 	if len(buffer) > 0 {
-		log.Info().Msg("has data")
+		logger.Info().Msg("has data")
 	}
 	mockInBuffer = []byte{}
 	return buffer, nil
@@ -67,7 +67,7 @@ func fakeOKAckMessage(bytes []byte) {
 	}
 
 	mockInBuffer = append(mockInBuffer, utils.CreatePayloadWithCRC32Checksum(bytes)...)
-	log.Info().Msg("Added ack message")
+	logger.Info().Msg("Added ack message")
 }
 
 func getNonceFromWriteMsg(bytes []byte) uint32 {
@@ -79,7 +79,7 @@ func getNonceFromWriteMsg(bytes []byte) uint32 {
 	message := &gen.ToSplitflap{}
 
 	if err := proto.Unmarshal(payload, message); err != nil {
-		log.Info().Msgf("Failed to unmarshal message: %v\n", err)
+		logger.Info().Msgf("Failed to unmarshal message: %v\n", err)
 		return 0
 	}
 

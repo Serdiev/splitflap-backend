@@ -5,11 +5,11 @@ import (
 	"math/rand"
 	config "splitflap-backend/configs"
 	gen "splitflap-backend/internal/generated"
+	"splitflap-backend/internal/logger"
 	"splitflap-backend/internal/utils"
 	"sync"
 	"time"
 
-	"github.com/rs/zerolog/log"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -82,7 +82,7 @@ func (sf *Splitflap) initializeModuleList(moduleCount int) {
 }
 
 func (sf *Splitflap) readLoop() {
-	log.Info().Msg("Read loop started")
+	logger.Info().Msg("Read loop started")
 	buffer := []byte{}
 	for {
 		if !sf.run {
@@ -91,7 +91,7 @@ func (sf *Splitflap) readLoop() {
 
 		newBytes, err := sf.serial.Read()
 		if err != nil {
-			log.Info().Msgf("Error reading from serial: %v\n", err)
+			logger.Info().Msgf("Error reading from serial: %v\n", err)
 			return
 		}
 
@@ -119,7 +119,7 @@ func (sf *Splitflap) processFrame(decoded []byte) {
 	message := &gen.FromSplitflap{}
 
 	if err := proto.Unmarshal(payload, message); err != nil {
-		log.Info().Msgf("Failed to unmarshal message: %v\n", err)
+		logger.Info().Msgf("Failed to unmarshal message: %v\n", err)
 		return
 	}
 	message.PrintSplitflapState()
@@ -134,7 +134,7 @@ func (sf *Splitflap) processFrame(decoded []byte) {
 		if sf.numModules == 0 {
 			sf.initializeModuleList(numModulesReported)
 		} else if sf.numModules != numModulesReported {
-			log.Info().Msgf("Number of reported modules changed (was %d, now %d)\n", sf.numModules, numModulesReported)
+			logger.Info().Msgf("Number of reported modules changed (was %d, now %d)\n", sf.numModules, numModulesReported)
 		}
 	}
 }
@@ -148,11 +148,11 @@ func (sf *Splitflap) waitingForIncomingMessage() bool {
 }
 
 func (sf *Splitflap) writeLoop() {
-	log.Info().Msg("Write loop started")
+	logger.Info().Msg("Write loop started")
 
 	for {
 		if !sf.run {
-			log.Info().Msg("Stop running, exiting write loop")
+			logger.Info().Msg("Stop running, exiting write loop")
 			return
 		}
 
@@ -166,13 +166,13 @@ func (sf *Splitflap) writeLoop() {
 		writeCount := 0
 		for {
 			if !sf.run {
-				log.Info().Msg("Stop running, exiting write loop")
+				logger.Info().Msg("Stop running, exiting write loop")
 				return
 			}
 
 			if time.Now().After(nextRetry) {
 				if writeCount > 0 {
-					log.Info().Msg("Write message again")
+					logger.Info().Msg("Write message again")
 				}
 				writeCount++
 				sf.serial.Write(enqueuedMessage.bytes)
@@ -271,7 +271,7 @@ func (sf *Splitflap) enqueueMessage(message *gen.ToSplitflap) {
 
 	payload, err := proto.Marshal(message)
 	if err != nil {
-		log.Error().Msgf("Error marshaling message: %v\n", err)
+		logger.Error().Msgf("Error marshaling message: %v\n", err)
 		return
 	}
 
@@ -284,9 +284,9 @@ func (sf *Splitflap) enqueueMessage(message *gen.ToSplitflap) {
 
 	approxQLength := len(sf.outQueue)
 	// TODO: handle error in some way
-	// log.Info().Msgf("Out q length: %d\n", approxQLength)
+	// logger.Info().Msgf("Out q length: %d\n", approxQLength)
 	if approxQLength > 10 {
-		log.Info().Msgf("Output queue length is high! (%d) Is the splitflap still connected and functional?\n", approxQLength)
+		logger.Info().Msgf("Output queue length is high! (%d) Is the splitflap still connected and functional?\n", approxQLength)
 	}
 }
 
@@ -316,7 +316,7 @@ func (sf *Splitflap) Start() {
 }
 
 func (sf *Splitflap) Shutdown() {
-	log.Info().Msg("Shutting down...")
+	logger.Info().Msg("Shutting down...")
 	sf.run = false
 	sf.serial.Close()
 	close(sf.outQueue)

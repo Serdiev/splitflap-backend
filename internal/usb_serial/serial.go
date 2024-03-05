@@ -2,8 +2,8 @@ package usb_serial
 
 import (
 	"bufio"
+	"splitflap-backend/internal/logger"
 
-	"github.com/rs/zerolog/log"
 	"go.bug.st/serial"
 )
 
@@ -20,12 +20,12 @@ type SerialConnection interface {
 func NewSerialConnection() *Serial {
 	list, err := serial.GetPortsList()
 	if err != nil {
-		log.Error().Err(err).Msg("Failed to get port list")
+		logger.Error().Err(err).Msg("Failed to get port list")
 		return nil
 	}
 
 	if len(list) == 0 {
-		log.Error().Err(err).Msg("No ports available")
+		logger.Error().Err(err).Msg("No ports available")
 		return nil
 	}
 
@@ -36,11 +36,11 @@ func NewSerialConnectionOnPort(port string) *Serial {
 	s := Serial{}
 	err := s.Open(port)
 	if err != nil {
-		log.Error().Err(err).Msg("Failed to connect to port")
+		logger.Error().Err(err).Msg("Failed to connect to port")
 		return nil
 	}
 
-	log.Info().Msgf("Connecting to port %s", port)
+	logger.Info().Msgf("Connecting to port %s", port)
 	return &s
 }
 
@@ -70,9 +70,9 @@ func (s *Serial) Open(portName string) error {
 func (s *Serial) Write(data []byte) error {
 	_, err := s.getSerial().Write(data)
 	if err != nil {
-		log.Error().Err(err).Msg("failed writing")
+		logger.Error().Err(err).Msg("failed writing")
 	}
-	// log.Info().Msgf("Bytes written %d", w)
+	// logger.Info().Msgf("Bytes written %d", w)
 	return err
 }
 
@@ -89,7 +89,7 @@ func (s *Serial) Read() ([]byte, error) {
 	return reply, err
 
 	// if err != nil {
-	// 	log.Error().Err(err).Msg("failed reading")
+	// 	logger.Error().Err(err).Msg("failed reading")
 	// }
 	// return buffer, err
 }

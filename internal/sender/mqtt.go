@@ -1,9 +1,9 @@
 package sender
 
 import (
-	"fmt"
 	"os"
 	config "splitflap-backend/configs"
+	"splitflap-backend/internal/logger"
 
 	MQTT "github.com/eclipse/paho.mqtt.golang"
 )
@@ -45,7 +45,7 @@ func NewMQTTSender(topic string) *MQTTSender {
 	client := MQTT.NewClient(opts)
 
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
-		fmt.Println("Failed to connect to MQTT broker:", token.Error())
+		logger.Error().Err(token.Error()).Msg("Failed to connect to MQTT broker")
 		return &MQTTSender{
 			initiated: false,
 		}
@@ -61,11 +61,11 @@ func NewMQTTSender(topic string) *MQTTSender {
 
 func setupReadHandler(client MQTT.Client, topic string) {
 	messageHandler := func(client MQTT.Client, msg MQTT.Message) {
-		fmt.Printf("Received message: %s\n", msg.Payload())
+		logger.Info().Msgf("Received message: %s\n", msg.Payload())
 	}
 
 	if token := client.Subscribe(topic, 0, messageHandler); token.Wait() && token.Error() != nil {
-		fmt.Println("Failed to subscribe to MQTT topic:", token.Error())
+		logger.Info().Msgf("Failed to subscribe to MQTT topic:", token.Error())
 		os.Exit(1)
 	}
 }

@@ -1,14 +1,14 @@
 package utils
 
 import (
-	"fmt"
+	"splitflap-backend/internal/logger"
 	"time"
 )
 
 func SetTimeZone() {
 	tz, err := time.LoadLocation(cfg.General.TimeZone)
 	if err != nil {
-		fmt.Println("Error loading time zone:", err)
+		logger.Error().Err(err).Msg("Error loading time zone")
 		return
 	}
 	time.Local = tz

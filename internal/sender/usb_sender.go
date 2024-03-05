@@ -3,11 +3,10 @@ package sender
 import (
 	"fmt"
 	"math/rand"
+	"splitflap-backend/internal/logger"
 	"splitflap-backend/internal/usb_serial"
 	"splitflap-backend/internal/utils"
 	"time"
-
-	"github.com/rs/zerolog/log"
 )
 
 type UsbSerialSender struct {
@@ -19,7 +18,7 @@ type UsbSerialSender struct {
 func NewUsbSerialSender() *UsbSerialSender {
 	connection := usb_serial.NewSerialConnection()
 	if connection == nil {
-		log.Error().Msg("Could not create USB serial connection")
+		logger.Error().Msg("Could not create USB serial connection")
 		return nil
 	}
 
@@ -31,7 +30,7 @@ func NewUsbSerialSender() *UsbSerialSender {
 		CurrentText:     cfg.Splitflap.AlphabetOffset,
 		CurrentRemapped: utils.MapForSending(cfg.Splitflap.AlphabetOffset),
 	}
-	fmt.Println(sender)
+
 	return sender
 }
 
@@ -42,9 +41,9 @@ func (m *UsbSerialSender) SendMessage(text string, sentBy string) error {
 	}
 	m.CurrentText = text
 
-	fmt.Println("Sent by:", sentBy)
-	fmt.Println("upper:", text[0:12])
-	fmt.Println("lower:", text[12:])
+	logger.Info().Msgf("Sent by: %s", sentBy)
+	logger.Info().Msgf("upper: %s", text[0:12])
+	logger.Info().Msgf("lower: %s", text[12:])
 
 	mapped := utils.MapForSending(text)
 	m.sf.SetText(mapped)

@@ -2,6 +2,7 @@ package gen
 
 import (
 	"fmt"
+	"splitflap-backend/internal/logger"
 )
 
 var (
@@ -40,7 +41,8 @@ func (m *FromSplitflap) PrintSplitflapState() {
 			}
 		}
 	}
+
 	if msg != "" {
-		fmt.Println(msg)
+		logger.Info().Msg(msg)
 	}
 }

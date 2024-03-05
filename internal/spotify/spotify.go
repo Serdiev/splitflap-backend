@@ -39,7 +39,6 @@ func (sc SpotifyClient) IsLoggedIn() bool {
 
 func (sc SpotifyClient) GetCurrentlyPlaying() (*models.SpotifyIsPlaying, error) {
 	if !sc.IsLoggedIn() {
-		fmt.Println("here")
 		return nil, nil
 	}
 
@@ -70,7 +69,6 @@ func (sc SpotifyClient) GetCurrentlyPlaying() (*models.SpotifyIsPlaying, error) 
 		return nil, fmt.Errorf("failed to parse API response: %w", err)
 	}
 
-	// fmt.Println(string(bytes))
 	if spotifyResp.IsPlaying {
 		dto := mapToDto(spotifyResp)
 		return dto, nil
