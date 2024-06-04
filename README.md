@@ -1,60 +1,18 @@
+## Run project (check makefile)
 
-# Exposing USB ports to WSL2 for use in linux (on windows)
+To build the binary run
+```
+sudo make build
+```
+To run the program in the background run
+```
+sudo make ex
+```
 
-On windows side:
-
- ``` 
- winget install usbipd
- ```
-
-Linux side:
-Following this guide: https://gitlab.com/alelec/wsl-usb-gui
-
-1. Run the following command: 
-Check wsl2 version: It should be at least 5.10.60.1 otherwise update wsl2.
- ``` 
- uname -a 
- ```
-
- Install some things...
- ``` 
- sudo apt install linux-tools-generic hwdata
- ```
- ``` 
- sudo update-alternatives --install /usr/local/bin/usbip usbip /usr/lib/linux-tools/*/usbip 20
- ```
-
-## Exposing the port (windows side)
-
-List which ports you have
- ``` 
- usbipd list
- ```
-
-Attaches given port to wsl2
- ``` 
- usbipd wsl attach --busid={BUS-ID}
- ```
-
-## Verifying port was exposed (linux side)
-To check what ports exist:
-
- ``` 
- lsusb
- ```
- You might have to run the following so it has correct privileges.
-
- ``` 
- sudo chmod 666 /dev/ttyACM0
- ```
+To run it locally on ubuntu ```sudo make run```.
+On windows ```sudo make runn```
 
 
-## To run demo.py
-
- ``` 
- pip install -r requirements.txt
- python3 demo.py
- ```
 
 # Creating a Ubuntu Server 
 
@@ -72,12 +30,12 @@ Get wlan name for raspberry:
 
 In my case it was named wlan0. Create backup of the network file.
  ``` 
- sudo cp /etc/netplan/00-installer-config.yaml /etc/netplan/00-install-config.original.yaml
+ sudo cp /etc/netplan/50-cloud-init.yaml /etc/netplan/50-cloud-init.original.yaml
  ```
 
 Edit the file
  ``` 
- sudo nano /etc/netplan/00-installer-config.yaml
+ sudo nano /etc/netplan/50-cloud-init.yaml
  ```
 
 Should look something like this:
@@ -102,17 +60,18 @@ sudo dkpg-reconfigure keyboard-configuration
 Then pick whatever keyboard/language you want.
 
 ## Install make
+```
 sudo apt install make
+```
 
 ## Random commands:
-SSH into server 
+SSH into server
 
 ```
 ssh ubuntu@192.168.1.86
 ```
 
-## Install MQTT
-
+## Install MQTT (personally not using it)
 
 Install MQTT broker on server:
 ```
@@ -134,3 +93,10 @@ sudo systemctl stop mosquitto
 sudo systemctl restart mosquitto
 ```
 
+## To run demo.py (scottbez1 repo)
+https://github.com/scottbez1/splitflap
+
+ ``` 
+ pip install -r requirements.txt
+ python3 demo.py
+ ```

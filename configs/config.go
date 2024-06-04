@@ -19,6 +19,7 @@ type General struct {
 	TimeZone string
 	CertFile string
 	KeyFile  string
+	IsLocal  bool
 }
 
 type MQTTConfig struct {

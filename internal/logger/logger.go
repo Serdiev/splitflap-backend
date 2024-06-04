@@ -22,7 +22,7 @@ func Fatal() *zerolog.Event {
 	return Log.Fatal()
 }
 
-func InitiateLogger() func() {
+func InitiateLoggerToFile() func() {
 	file, err := os.OpenFile(
 		"splitflap.log",
 		os.O_APPEND|os.O_CREATE|os.O_WRONLY,

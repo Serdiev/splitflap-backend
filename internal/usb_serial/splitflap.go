@@ -172,8 +172,11 @@ func (sf *Splitflap) writeLoop() {
 
 			if time.Now().After(nextRetry) {
 				if writeCount > 0 {
-					logger.Info().Msg("Write message again")
+					logger.Info().Msg("Failed to write message, resetting queue")
+					sf.outQueue = make(chan EnqueuedMessage, 100)
+					break
 				}
+
 				writeCount++
 				sf.serial.Write(enqueuedMessage.bytes)
 				nextRetry = time.Now().Add(RetryTime)

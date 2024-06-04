@@ -4,6 +4,9 @@ build:
 ex:
 	./bin/golangBuild &
 
+id:
+	$(ps -e | grep "golangBuild" | awk '{print $1}')
+
 # "GOOS=linux GOARCH=arm64" needed to run on raspberry pi 4. Can skip otherwise.
 run:
 	GOOS=linux GOARCH=arm64 go run cmd/splitflap/main.go

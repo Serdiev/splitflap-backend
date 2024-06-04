@@ -39,7 +39,7 @@ func matrixReplacement(textBefore string, newText string) {
 		// pick 4
 		for i := 0; i < lettersPerRun; i++ {
 			randomIndex := indexesLeft[rand.Intn(len(indexesLeft))]
-			logger.Info().Msg(randomIndex)
+			logger.Info().Interface("index", randomIndex).Msg("hello")
 			currentText = replaceAt(currentText, randomIndex, rune(newText[randomIndex]))
 			indexesLeft = removeValue(indexesLeft, randomIndex)
 		}
@@ -81,6 +81,7 @@ func send2() {
 
 	time.Sleep(30 * time.Second)
 }
+
 func send() {
 	connection := usb_serial.NewSerialConnection()
 	// connection := usb_serial.NewMockConnection()
