@@ -8,36 +8,47 @@ import (
 	config "splitflap-backend/configs"
 	"splitflap-backend/internal/models"
 	"splitflap-backend/internal/utils"
+	"strings"
 	"time"
 )
 
 var cfg = config.New()
-var spotifyAuthorizeCode = ""
-var refreshToken = ""
 
 type SpotifyClient struct {
 	client   *http.Client
 	loggedIn bool
+	isActive bool
 }
 
-func NewNoopSpotifyClient() SpotifyClient {
-	return SpotifyClient{
+func NewNoopSpotifyClient() *SpotifyClient {
+	return &SpotifyClient{
 		loggedIn: false,
+		isActive: false,
 	}
 }
 
-func NewSpotifyClient(client *http.Client) SpotifyClient {
-	return SpotifyClient{
+func NewSpotifyClient(client *http.Client) *SpotifyClient {
+	return &SpotifyClient{
 		client:   client,
 		loggedIn: true,
+		isActive: true,
 	}
 }
 
-func (sc SpotifyClient) IsLoggedIn() bool {
+func (sc *SpotifyClient) ToggleShouldUpdateSplitFlap() bool {
+	sc.isActive = !sc.isActive
+	return sc.isActive
+}
+
+func (sc *SpotifyClient) ShouldUpdateSplitFlap() bool {
+	return sc.isActive
+}
+
+func (sc *SpotifyClient) IsLoggedIn() bool {
 	return sc.loggedIn
 }
 
-func (sc SpotifyClient) GetCurrentlyPlaying() (*models.SpotifyIsPlaying, error) {
+func (sc *SpotifyClient) GetCurrentlyPlaying() (*models.SpotifyIsPlaying, error) {
 	if !sc.IsLoggedIn() {
 		return nil, nil
 	}
@@ -82,7 +93,7 @@ func mapToDto(resp SpotifyResponse) *models.SpotifyIsPlaying {
 
 	if resp.CurrentlyPlayingType == "episode" {
 		return &models.SpotifyIsPlaying{
-			Song:        utils.ReplaceDisallowedLetters(resp.Item.Name),
+			Song:        utils.ReplaceDisallowedLetters(strings.Replace(resp.Item.Name, "#", "", 1)),
 			Artist:      utils.ReplaceDisallowedLetters(resp.Item.Show.Name),
 			ProgressMs:  asSeconds(resp.ProgressMS),
 			DurationMs:  asSeconds(resp.Item.DurationMS),

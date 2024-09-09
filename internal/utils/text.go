@@ -90,5 +90,8 @@ func ReplaceDisallowedLetters(s string) string {
 	output = strings.ReplaceAll(output, "á", "a")
 	output = strings.ReplaceAll(output, "–", "-")
 	output = strings.ReplaceAll(output, "ë", "e")
+	output = strings.ReplaceAll(output, "#", "")
+	output = strings.ReplaceAll(output, "!", "")
+	output = strings.ReplaceAll(output, "?", "")
 	return output
 }

@@ -11,8 +11,8 @@ import (
 var cfg = config.New()
 var App Application
 
-func CreateService(c context.Context) Application {
-	return Application{
+func CreateService(c context.Context) *Application {
+	return &Application{
 		Context: c,
 		Sender:  GetSender(),
 		Spotify: spotify.NewNoopSpotifyClient(), // gets replaced with real client once we login to spotify

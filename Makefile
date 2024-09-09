@@ -5,7 +5,7 @@ ex:
 	./bin/golangBuild &
 
 id:
-	$(ps -e | grep "golangBuild" | awk '{print $1}')
+	ps -e | grep "golangBuild" | awk '{print $1}'
 
 # "GOOS=linux GOARCH=arm64" needed to run on raspberry pi 4. Can skip otherwise.
 run:

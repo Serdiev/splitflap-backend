@@ -84,6 +84,7 @@
             <div class="artist"></div>
             <div class="time-left"></div>
         </div>
+        <div class="toggle-active"><button onclick="toggleActive()">Toggle Spotify</button></div>
     </div>
     <form id="myForm">
         <label for="upper">Upper:</label>
@@ -130,23 +131,35 @@
         function padString(str, length) {
             return (str + ' '.repeat(length)).slice(0, length);
         }
-        
+
         function currentlyPlaying() {
             $.ajax({
                 type: "GET",
-                url: "/playing", // Replace with your actual endpoint URL
+                url: "/playing",
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
                 success: function (response) {
                     console.log("Message sent successfully:", response);
-                    // Handle the success response here
                     $('.song').html(response.Song)
                     $('.artist').html(response.Artist)
                     $('.time-left').html(response.TimeLeft)
                 },
                 error: function (error) {
                     console.error("Error sending message:", error);
-                    // Handle the error response here
+                }
+            });
+        }
+
+        function toggleActive() {
+            $.ajax({
+                type: "POST",
+                url: "/toggle",
+                success: function (response) {
+                    var newMessageDiv = $("<div>").text(response["isActive"]);
+                    $('#messages-sent').append(newMessageDiv);
+                },
+                error: function (error) {
+                    console.error("Error sending message:", error);
                 }
             });
         }

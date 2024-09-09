@@ -25,6 +25,8 @@ func (a *Application) GetCurrentlyPlaying(c *gin.Context) {
 type SpotifyClient interface {
 	IsLoggedIn() bool
 	GetCurrentlyPlaying() (*models.SpotifyIsPlaying, error)
+	ShouldUpdateSplitFlap() bool
+	ToggleShouldUpdateSplitFlap() bool
 }
 
 func (a *Application) SpotifyLogin(c *gin.Context) {
@@ -59,4 +61,8 @@ func (a *Application) SpotifyLoginCallback(c *gin.Context) {
 	a.Spotify = spotify.NewSpotifyClient(client)
 
 	c.Redirect(307, "/?message=logged_in")
+}
+
+func (a *Application) ToggleSpotify(c *gin.Context) {
+	c.JSON(200, gin.H{"isActive": a.Spotify.ToggleShouldUpdateSplitFlap()})
 }

@@ -14,7 +14,7 @@ var cfg = config.New()
 var lastCheckedSpotify = time.Now()
 
 func (s *StateHandler) initSpotifyStateHandler() bool {
-	if !s.App.Spotify.IsLoggedIn() {
+	if !s.App.Spotify.IsLoggedIn() || !s.App.Spotify.ShouldUpdateSplitFlap() {
 		return false
 	}
 
@@ -39,7 +39,12 @@ func (s *StateHandler) handleSpotifyState() {
 	ticker := time.NewTicker(5 * time.Second)
 
 	for range ticker.C {
+		if !s.App.Spotify.ShouldUpdateSplitFlap() {
+			s.App.SetToIdleState("not playing spotify anymore")
+			return
+		}
 		if s.App.State != h.Spotify {
+			s.App.SetToIdleState("something took precedence over spotify")
 			return
 		}
 

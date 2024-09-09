@@ -21,6 +21,7 @@ func SetupRouting(a *Application) *gin.Engine {
 	r.GET("/login", a.SpotifyLogin)
 	r.GET("/callback", a.SpotifyLoginCallback)
 	r.GET("/playing", a.GetCurrentlyPlaying)
+	r.POST("/toggle", a.ToggleSpotify)
 
 	r.POST("/message", a.SendMessage)
 
