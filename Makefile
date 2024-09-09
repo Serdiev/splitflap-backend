@@ -2,7 +2,7 @@ build:
 	GOOS=linux GOARCH=arm64 go build -o bin/golangBuild cmd/splitflap/main.go
 
 ex:
-	./bin/golangBuild &
+	nohup ./bin/golangBuild &
 
 id:
 	ps -e | grep "golangBuild" | awk '{print $1}'
