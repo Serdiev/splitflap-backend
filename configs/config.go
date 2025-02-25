@@ -57,7 +57,7 @@ func New() Configuration {
 
 	godotenv.Load(".env")
 
-	count, err := strconv.Atoi(GetVar("SPLITFLAP_MODULE_COUNT"))
+	count, err := strconv.Atoi(GetVar("SPLITFLAP_MODULE_COUNT", "24"))
 	if err != nil {
 		panic("count not valid number")
 	}
@@ -69,23 +69,24 @@ func New() Configuration {
 		// 	Topic:     GetVar("MQTT_TOPIC"),
 		// },
 		Spotify: SpotifyConfig{
-			BaseUrl:      GetVar("SPOTIFY_URL"),
-			TokenUrl:     GetVar("SPOTIFY_TOKEN_URL"),
-			ClientId:     GetVar("SPOTIFY_CLIENT_ID"),
-			ClientSecret: GetVar("SPOTIFY_CLIENT_SECRET"),
-			RedirectUrl:  GetVar("SPOTIFY_REDIRECT_URL"),
+			BaseUrl:      GetVar("SPOTIFY_URL", ""),
+			TokenUrl:     GetVar("SPOTIFY_TOKEN_URL", ""),
+			ClientId:     GetVar("SPOTIFY_CLIENT_ID", ""),
+			ClientSecret: GetVar("SPOTIFY_CLIENT_SECRET", ""),
+			RedirectUrl:  GetVar("SPOTIFY_REDIRECT_URL", ""),
 		},
 		Splitflap: SplitFlapConfig{
 			ModuleCount:         count,
 			DriverCount:         count / 6,
-			AlphabetOffset:      GetVar("ALPHABET_OFFSET_UPPER") + GetVar("ALPHABET_OFFSET_LOWER"),
-			AlphabetCustomOrder: GetVar("ALPHABET_CUSTOM_ORDER"),
-			AlphabetESP32Order:  GetVar("ALPHABET_ESP32_ORDER"),
+			AlphabetOffset:      GetVar("ALPHABET_OFFSET_UPPER", ",+%%9%::,%::") + GetVar("ALPHABET_OFFSET_LOWER", ",%:::::,:,,:"),
+			AlphabetCustomOrder: GetVar("ALPHABET_CUSTOM_ORDER", " abcdefghijklmnpqrstuvwxy0123456789+-%,:"),
+			AlphabetESP32Order:  GetVar("ALPHABET_ESP32_ORDER", " abcdefghijklmnopqrstuvwxyz0123456789.,'"),
 		},
 		General: General{
-			TimeZone: GetVar("TIMEZONE"),
-			CertFile: GetVar("LETSENCRYPT_CERTFILE"),
-			KeyFile:  GetVar("LETSENCRYPT_KEYFILE"),
+			TimeZone: GetVar("TIMEZONE", "Europe/Stockholm"),
+			CertFile: GetVar("LETSENCRYPT_CERTFILE", ""),
+			KeyFile:  GetVar("LETSENCRYPT_KEYFILE", ""),
+			IsLocal:  GetVar("IS_LOCAL", "f") == "TRUE",
 		},
 	}
 
@@ -98,10 +99,11 @@ func New() Configuration {
 	return *cfg
 }
 
-func GetVar(str string) string {
+func GetVar(str string, fallback string) string {
 	v := os.Getenv(str)
 	if v == "" {
-		panic(fmt.Sprintf("missing env var: %s", str))
+		fmt.Println(fmt.Sprintf("missing env var: %s", str))
+		return fallback
 	}
 
 	return v

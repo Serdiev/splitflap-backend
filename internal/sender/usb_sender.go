@@ -7,6 +7,8 @@ import (
 	"splitflap-backend/internal/usb_serial"
 	"splitflap-backend/internal/utils"
 	"time"
+
+	gen "splitflap-backend/internal/generated"
 )
 
 type UsbSerialSender struct {
@@ -15,14 +17,14 @@ type UsbSerialSender struct {
 	CurrentRemapped string
 }
 
-func NewUsbSerialSender() *UsbSerialSender {
+func NewUsbSerialSender(handleState func(state *gen.SplitflapState)) *UsbSerialSender {
 	connection := usb_serial.NewSerialConnection()
 	if connection == nil {
 		logger.Error().Msg("Could not create USB serial connection")
 		return nil
 	}
 
-	sf := usb_serial.NewSplitflap(connection)
+	sf := usb_serial.NewSplitflap(connection, handleState)
 	sf.Start()
 
 	sender := &UsbSerialSender{

@@ -2,174 +2,331 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title></title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #222222;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
 
-        h2 {
-            text-align: center;
-            color: #333;
-        }
+    header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      background: #1e1e1e;
+      width: 100%;
+      padding: 20px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      color: white;
+    }
 
-        form {
-            max-width: 400px;
-            margin: 20px;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
+    header a {
+      text-decoration: none;
+      color: #0f0;
+      font-size: 1.2rem;
+    }
 
-        label {
-            display: block;
-            margin-bottom: 8px;
-        }
+    header .logged-in,
+    header .check-currently-playing,
+    header .currently-playing,
+    header .toggle-active {
+      margin-top: 5px;
+    }
 
-        input {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 16px;
-            box-sizing: border-box;
-        }
+    header .check-currently-playing,
+    header .toggle-active {
+      cursor: pointer;
+      background: #333;
+      border: 2px solid #555;
+      color: #0f0;
+      padding: 8px 15px;
+      border-radius: 5px;
+      font-size: 1rem;
+      transition: background 0.3s;
+    }
 
-        button {
-            background-color: #007BFF;
-            color: #fff;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
+    header .check-currently-playing:hover,
+    header .toggle-active button:hover {
+      background: #444;
+    }
 
-        .logged-in {
-            background-color: #7AFA84;
-        }
+    h2 {
+      text-align: center;
+      color: #FFF;
+    }
 
-        .flex-column {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
+    form {
+      max-width: 400px;
+      margin: 20px;
+      padding: 20px;
+      background-color: #333;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
 
-        .check-currently-playing {
-            cursor: pointer;
-        }
+    label {
+      display: block;
+      margin-bottom: 8px;
+    }
 
-        button:hover {
-            background-color: #0056b3;
-        }
-    </style>
-    <!-- Include jQuery library -->
-    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 16px;
+      box-sizing: border-box;
+    }
+
+    button {
+      background-color: #dedede;
+      color: #000;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .flex-column {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .splitflap {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      grid-template-rows: repeat(2, auto);
+      gap: 5px;
+    }
+
+    .flap {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 5vw;
+      height: 0;
+      border: 2px solid #555;
+      border-radius: 5px;
+      background: #000;
+      color: #FFF;
+      font-size: 4vw;
+      font-weight: bold;
+      text-align: center;
+      padding: 0;
+      padding-top: 150%;
+    }
+
+    .inner {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: none;
+      color: #FFF;
+      font-size: 4vw;
+      font-weight: bold;
+      text-align: center;
+      padding: 0;
+      margin: 0;
+    }
+  </style>
+  <!-- Include jQuery library -->
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 </head>
 
 <body>
-    <div class="flex-column">
-        <a id="spotify-login" href="/login">Spotify login</a>
-        <div class="logged-in">Logged into Spotify</div>
-        <div class="check-currently-playing" onclick="currentlyPlaying()">Check whats currently playing</div>
-        <div class="currently-playing flex-column">
-            <div class="song"></div>
-            <div class="artist"></div>
-            <div class="time-left"></div>
-        </div>
-        <div class="toggle-active"><button onclick="toggleActive()">Toggle Spotify</button></div>
+  <header>
+    <a id="spotify-login" href="/login">Spotify Login</a>
+    <div class="logged-in">Logged into Spotify</div>
+    <div class="check-currently-playing" onclick="currentlyPlaying()">Check what's currently playing</div>
+    <div class="currently-playing">
+      <div class="song">Song: N/A</div>
+      <div class="artist">Artist: N/A</div>
+      <div class="time-left">Time Left: N/A</div>
     </div>
-    <form id="myForm">
-        <label for="upper">Upper:</label>
-        <input type="text" id="upper" name="upper" maxlength="12" required>
-        <label for="lower">Lower:</label>
-        <input type="text" id="lower" name="lower" maxlength="12" required>
-        <br>
-        <button type="button" onclick="sendMessage()">Send Message</button>
-    </form>
-    <div class="flex-column">
-        <div>Messages sent</div>
-        <div id="messages-sent" class="flex-column">
+    <div class="toggle-active"><button onclick="toggleActive()">Toggle Spotify</button></div>
+  </header>
 
-        </div>
+  <!-- Flaps will be generated dynamically -->
+  <div class="splitflap">
+  </div>
+
+  <button type="button" onclick="sendMessage()">Send Message</button>
+  <div class="flex-column">
+    <div style="color: #fff;">Messages sent</div>
+    <div style="color: #fff;" id="messages-sent" class="flex-column">
     </div>
+  </div>
 
-    <script>
-        function sendMessage() {
-            var upper = padString($("#upper").val(), 12);
-            var lower = padString($("#lower").val(), 12);
-            var data = {
-                message: upper + lower
-            };
+  <script>
+    function currentlyPlaying() {
+      $.ajax({
+        type: "GET",
+        url: "/playing",
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function (response) {
+          console.log("Message sent successfully:", response);
+          $('.song').html(response.Song)
+          $('.artist').html(response.Artist)
+          $('.time-left').html(response.TimeLeft)
+        },
+        error: function (error) {
+          console.error("Error sending message:", error);
+        }
+      });
+    }
 
-            $.ajax({
-                type: "POST",
-                url: "/message", // Replace with your actual endpoint URL
-                data: JSON.stringify(data),
-                contentType: "application/json; charset=utf-8",
-                dataType: "json",
-                success: function (response) {
-                    console.log("Message sent successfully:", response);
-                    var newMessageDiv = $("<div>").text(data.message);
-                    $('#messages-sent').append(newMessageDiv);
-                    // Handle the success response here
-                },
-                error: function (error) {
-                    console.error("Error sending message:", error);
-                    // Handle the error response here
-                }
-            });
+    function toggleActive() {
+      $.ajax({
+        type: "POST",
+        url: "/toggle",
+        success: function (response) {
+          var newMessageDiv = $("<div>").text(response["isActive"]);
+          $('#messages-sent').append(newMessageDiv);
+        },
+        error: function (error) {
+          console.error("Error sending message:", error);
+        }
+      });
+    }
+
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('message') === 'logged_in') {
+      $('.logged-in').show()
+    }
+  </script>
+
+  <script>
+    const sf = document.querySelector('.splitflap');
+
+    for (let i = 0; i < 24; i++) {
+      const flap = document.createElement('div');
+      flap.className = 'flap';
+      sf.appendChild(flap);
+
+      const inner = document.createElement('input');
+      inner.className = 'inner';
+      inner.maxLength = 1;
+
+      flap.appendChild(inner);
+    }
+
+    const flapInputs = document.querySelectorAll('.inner')
+
+    $.ajax({
+      type: "GET",
+      url: "/message", // Replace with your actual endpoint URL
+      contentType: "application/json; charset=utf-8",
+      dataType: "json",
+      success: function (response) {
+        console.log("Message received successfully:", response);
+        for (let i = 0; i < flapInputs.length; i++) {
+          flapInputs[i].value = response.currentText[i].toUpperCase();
+        }
+      },
+      error: function (error) {
+        console.error("Error getting message:", error);
+      }
+    });
+
+
+    for (let i = 0; i < flapInputs.length; i++) {
+      flapInputs[i].onkeydown = (event) => {
+        const pressed = event.key
+        if (pressed == "Backspace") {
+          console.log("back")
+          flapInputs[i].value = ' '
+          if (i != 0) {
+            flapInputs[i - 1].focus()
+          }
+        } else if (pressed == "Delete") {
+          console.log("delete")
+          flapInputs[i].value = ' '
+          if (i == 23) return
+          flapInputs[i + 1].focus()
+        } else if (pressed.includes("Left")) {
+          if (i == 0) return
+
+          flapInputs[i - 1].focus()
+        } else if (pressed.includes("Up")) {
+          if (i < 12) return
+          flapInputs[i - 12].focus()
+        } else if (pressed.includes("Right")) {
+          if (i == 23) return
+          flapInputs[i + 1].focus()
+        } else if (pressed.includes("Down")) {
+          if (i > 11) return
+          flapInputs[i + 12].focus()
+        }
+        else if (pressed.length == 1) {
+          flapInputs[i].value = pressed.toUpperCase()
+          if (i == 23) return
+          flapInputs[i + 1].focus()
         }
 
-        function padString(str, length) {
-            return (str + ' '.repeat(length)).slice(0, length);
+        let text = ""
+        for (let i = 0; i < flapInputs.length; i++) {
+          text += flapInputs[i].value
         }
+      }
+    }
 
-        function currentlyPlaying() {
-            $.ajax({
-                type: "GET",
-                url: "/playing",
-                contentType: "application/json; charset=utf-8",
-                dataType: "json",
-                success: function (response) {
-                    console.log("Message sent successfully:", response);
-                    $('.song').html(response.Song)
-                    $('.artist').html(response.Artist)
-                    $('.time-left').html(response.TimeLeft)
-                },
-                error: function (error) {
-                    console.error("Error sending message:", error);
-                }
-            });
+    const socket = new WebSocket('wss://' + window.location.host + '/ws');
+    socket.onmessage = function (event) {
+      const currentText = JSON.parse(event.data).currentText
+      console.log("c", currentText)
+      for (let i = 0; i < flapInputs.length; i++) {
+        flapInputs[i].value = currentText[i].toUpperCase();
+      }
+    };
+
+    function sendMessage() {
+      let message = "";
+      const flaps = document.querySelectorAll('.inner');
+      flaps.forEach(flap => {
+        message += flap.value;
+      });
+
+      var data = {
+        message: message
+      };
+
+      $.ajax({
+        type: "POST",
+        url: "/message", // Replace with your actual endpoint URL
+        data: JSON.stringify(data),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function (response) {
+          console.log("Message sent successfully:", response);
+          var newMessageDiv = $("<div>").text(data.message);
+          $('#messages-sent').append(newMessageDiv);
+          // Handle the success response here
+        },
+        error: function (error) {
+          console.error("Error sending message:", error);
+          // Handle the error response here
         }
-
-        function toggleActive() {
-            $.ajax({
-                type: "POST",
-                url: "/toggle",
-                success: function (response) {
-                    var newMessageDiv = $("<div>").text(response["isActive"]);
-                    $('#messages-sent').append(newMessageDiv);
-                },
-                error: function (error) {
-                    console.error("Error sending message:", error);
-                }
-            });
-        }
-
-        const params = new URLSearchParams(window.location.search)
-        if (params.get('message') === 'logged_in') {
-            $('.logged-in').show()
-        }
-    </script>
-
+      });
+    }
+  </script>
 </body>
 
 </html>

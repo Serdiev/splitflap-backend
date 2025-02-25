@@ -3,6 +3,7 @@ package utils
 import (
 	config "splitflap-backend/configs"
 	"strings"
+	"unicode/utf8"
 )
 
 var cfg = config.New()
@@ -11,12 +12,15 @@ var LetterToIndexMap = createLetterToIndexMap()
 var IndexToLetterMap = createIndexToLetterMap()
 var InvertedWireMapping = map[int]int{}
 var WireMapping = createWireMapping()
+
+var ArduinoToCustomMapping = map[string]string{}
 var CustomToArduinoMapping = createArduinoMap()
 
 func createArduinoMap() map[string]string {
 	m := map[string]string{}
 	for i := 0; i < len(cfg.Splitflap.AlphabetCustomOrder); i++ {
 		m[string(cfg.Splitflap.AlphabetCustomOrder[i])] = string(cfg.Splitflap.AlphabetESP32Order[i])
+		ArduinoToCustomMapping[string(cfg.Splitflap.AlphabetESP32Order[i])] = string(cfg.Splitflap.AlphabetCustomOrder[i])
 	}
 
 	return m
@@ -104,23 +108,31 @@ func createIndexToLetterMap() map[int]string {
 
 func MapForSending(s string) string {
 	output := s
-	output = PadWithSpaces(output)
 	output = strings.ToLower(output)
 	output = ReplaceDisallowedLetters(output)
+	output = PadWithSpaces(output)
 	output = SpoolOffsetMapping(output)
 	output = AdjustWireMapping(output)
 	output = MapToArduinoLetters(output)
 	return output
 }
 
+func MapForReading(s string) string {
+	output := s
+	output = MapToCustomLetters(output)
+	output = RevertAdjustWireMapping(output)
+	output = RevertSpoolOffsetMapping(output)
+	return output
+}
+
 func PadWithSpaces(text string) string {
 	length := cfg.Splitflap.ModuleCount
-	if len(text) > length {
+	if utf8.RuneCountInString(text) > length {
 		// Truncate if too long
 		return text[:length]
-	} else if len(text) < length {
+	} else if utf8.RuneCountInString(text) < length {
 		// Pad with spaces if too short
-		return text + strings.Repeat(" ", length-len(text))
+		return text + strings.Repeat(" ", length-utf8.RuneCountInString(text))
 	}
 	// Return unchanged text if already the desired length
 	return text
@@ -137,11 +149,21 @@ func AdjustWireMapping(text string) string {
 	return output
 }
 
+func RevertAdjustWireMapping(text string) string {
+	output := ""
+	for i := 0; i < len(InvertedWireMapping); i++ {
+		mapIndex := InvertedWireMapping[i]
+		output += string(text[mapIndex])
+	}
+
+	return output
+}
+
 // adjust offset
 func SpoolOffsetMapping(text string) string {
 	output := ""
 
-	for i := 0; i < len(text); i++ {
+	for i := 0; i < utf8.RuneCountInString(text); i++ {
 		letterOffset := string(cfg.Splitflap.AlphabetOffset[i])
 		offset := LetterToIndexMap[letterOffset]
 		currentIndex := LetterToIndexMap[string(text[i])]
@@ -153,11 +175,36 @@ func SpoolOffsetMapping(text string) string {
 	return output
 }
 
+func RevertSpoolOffsetMapping(text string) string {
+	output := ""
+
+	for i := 0; i < utf8.RuneCountInString(text); i++ {
+		letterOffset := string(cfg.Splitflap.AlphabetOffset[i])
+		offset := LetterToIndexMap[letterOffset]
+		currentIndex := LetterToIndexMap[string(text[i])]
+		adjustedIndex := (40 + currentIndex + offset) % 40 // plus offset? now
+
+		output += IndexToLetterMap[adjustedIndex]
+	}
+
+	return output
+}
+
 // will convert custom letters to the ESP32 "order"
 func MapToArduinoLetters(text string) string {
 	output := ""
-	for i := 0; i < len(text); i++ {
+	for i := 0; i < utf8.RuneCountInString(text); i++ {
 		output += CustomToArduinoMapping[string(text[i])]
+	}
+
+	return output
+}
+
+// Revert functions
+func MapToCustomLetters(text string) string {
+	output := ""
+	for i := 0; i < utf8.RuneCountInString(text); i++ {
+		output += ArduinoToCustomMapping[string(text[i])]
 	}
 
 	return output

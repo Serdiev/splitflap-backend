@@ -90,25 +90,33 @@ func (sc *SpotifyClient) GetCurrentlyPlaying() (*models.SpotifyIsPlaying, error)
 
 func mapToDto(resp SpotifyResponse) *models.SpotifyIsPlaying {
 	secondsLeft := asSeconds(resp.Item.DurationMS - resp.ProgressMS)
+	imageUrl := ""
+	for _, image := range resp.Item.Album.Images {
+		if image.Height == 64 && image.Width == 64 {
+			imageUrl = image.URL
+		}
+	}
 
 	if resp.CurrentlyPlayingType == "episode" {
 		return &models.SpotifyIsPlaying{
-			Song:        utils.ReplaceDisallowedLetters(strings.Replace(resp.Item.Name, "#", "", 1)),
-			Artist:      utils.ReplaceDisallowedLetters(resp.Item.Show.Name),
-			ProgressMs:  asSeconds(resp.ProgressMS),
-			DurationMs:  asSeconds(resp.Item.DurationMS),
-			SecondsLeft: secondsLeft,
-			TimeLeft:    formatSecondsToMMSS(secondsLeft),
+			Song:            utils.ReplaceDisallowedLetters(strings.Replace(resp.Item.Name, "#", "", 1)),
+			Artist:          utils.ReplaceDisallowedLetters(resp.Item.Show.Name),
+			ProgressMs:      asSeconds(resp.ProgressMS),
+			DurationMs:      asSeconds(resp.Item.DurationMS),
+			SecondsLeft:     secondsLeft,
+			TimeLeft:        formatSecondsToMMSS(secondsLeft),
+			Image64PixelUrl: imageUrl,
 		}
 	}
 
 	return &models.SpotifyIsPlaying{
-		Song:        utils.ReplaceDisallowedLetters(resp.Item.Name),
-		Artist:      utils.ReplaceDisallowedLetters(resp.Item.Artists[0].Name),
-		ProgressMs:  asSeconds(resp.ProgressMS),
-		DurationMs:  asSeconds(resp.Item.DurationMS),
-		SecondsLeft: secondsLeft,
-		TimeLeft:    formatSecondsToMMSS(secondsLeft),
+		Song:            utils.ReplaceDisallowedLetters(resp.Item.Name),
+		Artist:          utils.ReplaceDisallowedLetters(resp.Item.Artists[0].Name),
+		ProgressMs:      asSeconds(resp.ProgressMS),
+		DurationMs:      asSeconds(resp.Item.DurationMS),
+		SecondsLeft:     secondsLeft,
+		TimeLeft:        formatSecondsToMMSS(secondsLeft),
+		Image64PixelUrl: imageUrl,
 	}
 }
 

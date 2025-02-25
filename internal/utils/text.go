@@ -1,6 +1,8 @@
 package utils
 
-import "strings"
+import (
+	"strings"
+)
 
 var ROW_LENGTH = 12
 
@@ -77,15 +79,15 @@ func truncate(text string, length int) string {
 
 func ReplaceDisallowedLetters(s string) string {
 	output := s
+	output = strings.ReplaceAll(output, "å", "a")
+	output = strings.ReplaceAll(output, "ä", "a")
+	output = strings.ReplaceAll(output, "ö", "0")
 	output = strings.ReplaceAll(output, "’", "")
 	output = strings.ReplaceAll(output, "'", "")
 	output = strings.ReplaceAll(output, ";", ":")
 	output = strings.ReplaceAll(output, ".", ",")
 	output = strings.ReplaceAll(output, "o", "0")
 	output = strings.ReplaceAll(output, "z", "s")
-	output = strings.ReplaceAll(output, "å", "a")
-	output = strings.ReplaceAll(output, "ä", "a")
-	output = strings.ReplaceAll(output, "ö", "o")
 	output = strings.ReplaceAll(output, "é", "e")
 	output = strings.ReplaceAll(output, "á", "a")
 	output = strings.ReplaceAll(output, "–", "-")
@@ -93,5 +95,7 @@ func ReplaceDisallowedLetters(s string) string {
 	output = strings.ReplaceAll(output, "#", "")
 	output = strings.ReplaceAll(output, "!", "")
 	output = strings.ReplaceAll(output, "?", "")
+	output = strings.ReplaceAll(output, "(", "")
+	output = strings.ReplaceAll(output, ")", "")
 	return output
 }

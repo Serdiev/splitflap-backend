@@ -41,7 +41,11 @@ func main() {
 
 func startServer(r *gin.Engine) *http.Server {
 	if cfg.General.IsLocal {
-		r.Run(":8080")
+		err := r.Run(":443")
+		if err != nil {
+			panic(err)
+		}
+
 		log.Info().Msg("Starting local server on 8080")
 		return nil
 	}
@@ -52,7 +56,8 @@ func startServer(r *gin.Engine) *http.Server {
 	}
 
 	go func() {
-		if err := server.ListenAndServeTLS(cfg.General.CertFile, cfg.General.KeyFile); err != nil && err != http.ErrServerClosed {
+		err := server.ListenAndServeTLS(cfg.General.CertFile, cfg.General.KeyFile)
+		if err != nil && err != http.ErrServerClosed {
 			logger.Error().Msgf("ListenAndServeTLS: %s", err.Error())
 		}
 	}()

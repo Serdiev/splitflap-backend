@@ -40,9 +40,10 @@ type Splitflap struct {
 	currentConfig   *gen.SplitflapConfig
 	numModules      int
 	alphabet        []rune
+	handleReadState func(state *gen.SplitflapState)
 }
 
-func NewSplitflap(serialInstance SerialConnection) *Splitflap {
+func NewSplitflap(serialInstance SerialConnection, handleState func(state *gen.SplitflapState)) *Splitflap {
 	alphabet := []rune{}
 	for _, v := range cfg.Splitflap.AlphabetESP32Order {
 		alphabet = append(alphabet, v)
@@ -57,6 +58,7 @@ func NewSplitflap(serialInstance SerialConnection) *Splitflap {
 		messageHandlers: make(map[gen.SplitFlapType]func(interface{})),
 		currentConfig:   nil,
 		alphabet:        alphabet,
+		handleReadState: handleState,
 	}
 
 	// TODO: Remove later
@@ -136,6 +138,8 @@ func (sf *Splitflap) processFrame(decoded []byte) {
 		} else if sf.numModules != numModulesReported {
 			logger.Info().Msgf("Number of reported modules changed (was %d, now %d)\n", sf.numModules, numModulesReported)
 		}
+
+		sf.handleReadState(message.GetSplitflapState())
 	}
 }
 
