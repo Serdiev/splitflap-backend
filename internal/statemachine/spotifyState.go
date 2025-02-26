@@ -35,8 +35,6 @@ func (s *StateHandler) initSpotifyStateHandler() bool {
 	return true
 }
 
-var lastSentImg = ""
-
 func (s *StateHandler) handleSpotifyState() {
 	ticker := time.NewTicker(5 * time.Second)
 
@@ -58,11 +56,7 @@ func (s *StateHandler) handleSpotifyState() {
 
 		msg := getPlayingText(playing)
 		s.App.Sender.SendMessage(msg, "spotify playing")
-
-		if lastSentImg != playing.Image64PixelUrl {
-			s.App.SendImage(playing.Image64PixelUrl)
-			// lastSentImg = playing.Image64PixelUrl
-		}
+		s.App.SendImage(playing.Image64PixelUrl)
 	}
 }
 
