@@ -47,7 +47,7 @@ func (a *Application) SetState(state DisplayState) {
 // Sets mode to idle and sets text to empty
 func (a *Application) SetToIdleState(sentBy string) {
 	a.State = Idle
-	a.Sender.SendMessage(strings.Repeat(" ", cfg.Splitflap.ModuleCount), sentBy)
+	_ = a.Sender.SendMessage(strings.Repeat(" ", cfg.Splitflap.ModuleCount), sentBy)
 }
 
 // Sets text with correct length (inserting spaces or truncating)
