@@ -14,12 +14,34 @@ type Image struct {
 }
 
 type Color struct {
-	R int `json:"r"`
-	G int `json:"g"`
-	B int `json:"b"`
+	R uint8 `json:"r"`
+	G uint8 `json:"g"`
+	B uint8 `json:"b"`
 }
 
-func NewColor(r, g, b int) Color {
+// Constructs a byte array [width, height, R, G, B, R, G, B, ...]
+func (img *Image) ToBytes() ([]byte, error) {
+	ints := []uint8{}
+
+	height := uint8(len(img.Image))
+	width := uint8(len(img.Image[0])) // Assume non-empty rows
+
+	ints = append(ints, width)
+	ints = append(ints, height)
+
+	for y := uint8(0); y < height; y++ {
+		for x := uint8(0); x < width; x++ {
+			pixel := img.Image[y][x]
+			ints = append(ints, pixel.R)
+			ints = append(ints, pixel.G)
+			ints = append(ints, pixel.B)
+		}
+	}
+
+	return ints, nil
+}
+
+func NewColor(r, g, b uint8) Color {
 	return Color{R: r, G: g, B: b}
 }
 
@@ -45,9 +67,9 @@ func ConvertUrlToImage(url string) (*Image, error) {
 				for x := 0; x < width; x++ {
 					r, g, b, _ := img.At(x, y).RGBA()
 					imageData[y][x] = Color{
-						R: int(r >> 8), // Convert from 16-bit to 8-bit
-						G: int(g >> 8),
-						B: int(b >> 8),
+						R: uint8(r >> 8),
+						G: uint8(g >> 8),
+						B: uint8(b >> 8),
 					}
 				}
 			}

@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"splitflap-backend/internal/logger"
@@ -16,7 +15,7 @@ func (a *Application) SendImage(url string) error {
 		return err
 	}
 
-	bytes, err := json.Marshal(img)
+	bytes, err := img.ToBytes()
 	if err != nil {
 		logger.Error().Err(err).Msg("failed to get image bytes")
 		return err
@@ -37,15 +36,4 @@ func (a *Application) SendImage(url string) error {
 	}
 
 	return nil
-}
-
-type ImageRequest struct {
-	Image [][]Color `json:"image"`
-}
-
-type Color struct {
-	R uint8 `json:"r"`
-	G uint8 `json:"g"`
-	B uint8 `json:"b"`
-	A uint8 `json:"a"`
 }

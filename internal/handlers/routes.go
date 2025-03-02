@@ -1,12 +1,32 @@
 package handlers
 
 import (
+	"image"
+	"image/color"
 	"net/http"
 	"splitflap-backend/internal/utils"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
+
+func ConvertCustomImageToRGBA(customImage utils.Image) *image.RGBA {
+	height := len(customImage.Image)
+	width := len(customImage.Image[0])
+
+	// Create an RGBA image
+	img := image.NewRGBA(image.Rect(0, 0, width, height))
+
+	// Fill the image with your custom RGB data
+	for y := 0; y < height; y++ {
+		for x := 0; x < width; x++ {
+			rgb := customImage.Image[y][x]
+			img.Set(x, y, color.RGBA{rgb.R, rgb.G, rgb.B, 255}) // Set pixel with full opacity
+		}
+	}
+
+	return img
+}
 
 func SetupRouting(a *Application) *gin.Engine {
 
