@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"splitflap-backend/internal/logger"
 	"splitflap-backend/internal/utils"
 	"splitflap-backend/pkg/fluent"
 )
@@ -38,6 +39,10 @@ func (client *LctMatrixClient) SendImage(image utils.Image) error {
 		}).
 		Execute()
 
-	fmt.Println(err)
+	if err != nil {
+		logger.Error().Err(err).Msg("failed to send image")
+		return err
+	}
+
 	return nil
 }

@@ -6,10 +6,12 @@ import (
 	"image"
 	_ "image/jpeg" // Support for JPEG
 	_ "image/png"  // Support for PNG
+	"splitflap-backend/internal/logger"
 	"splitflap-backend/pkg/fluent"
 )
 
 type Image struct {
+	Url   string    `json:"url"`
 	Image [][]Color `json:"image"`
 }
 
@@ -17,6 +19,18 @@ type Color struct {
 	R uint8 `json:"r"`
 	G uint8 `json:"g"`
 	B uint8 `json:"b"`
+}
+
+func EmptyImage() *Image {
+	imageData := make([][]Color, 64)
+	for y := 0; y < 64; y++ {
+		imageData[y] = make([]Color, 64)
+		for x := 0; x < 64; x++ {
+			imageData[y][x] = Color{R: 0, G: 0, B: 0}
+		}
+	}
+
+	return &Image{Image: imageData, Url: "empty..."}
 }
 
 // Constructs a byte array [width, height, R, G, B, R, G, B, ...]
@@ -45,22 +59,18 @@ func NewColor(r, g, b uint8) Color {
 	return Color{R: r, G: g, B: b}
 }
 
-func ConvertUrlToImage(url string) (*Image, error) {
-	var returnImage Image
-
+func ConvertUrlToImage(url string) (returnImg *Image) {
 	err := fluent.
 		Get(url).
 		OnSuccess(func(payload []byte) error {
-			img, _, err := image.Decode(bytes.NewBuffer(payload))
-			if err != nil {
-				return fmt.Errorf("failed to decode image: %w", err)
+			img, _, iErr := image.Decode(bytes.NewBuffer(payload))
+			if iErr != nil {
+				return fmt.Errorf("failed to decode image: %w", iErr)
 			}
 
-			// Get image bounds
 			bounds := img.Bounds()
 			width, height := bounds.Dx(), bounds.Dy()
 
-			// Convert image pixels to a 2D array of Color
 			imageData := make([][]Color, height)
 			for y := 0; y < height; y++ {
 				imageData[y] = make([]Color, width)
@@ -74,14 +84,17 @@ func ConvertUrlToImage(url string) (*Image, error) {
 				}
 			}
 
-			returnImage = Image{Image: imageData}
+			returnImg = &Image{Image: imageData, Url: url}
 			return nil
+		}).
+		OnError(func(payload []byte) error {
+			return fmt.Errorf("failed to get image: %s", string(payload))
 		}).
 		Execute()
 
 	if err != nil {
-		return nil, err
+		logger.Error().Err(err).Msg("failed to get image")
 	}
 
-	return &returnImage, nil
+	return
 }

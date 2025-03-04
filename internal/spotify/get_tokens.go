@@ -81,7 +81,7 @@ func GetRefreshedToken(refreshToken string) *oauth2.Token {
 		WithContentType("application/x-www-form-urlencoded").
 		WithClientCredentials(cfg.Spotify.ClientId, cfg.Spotify.ClientSecret).
 		OnSuccess(func(bytes []byte) error {
-			innerToken, innerErr := fluent.BytesToStruct[oauth2.Token](bytes)
+			innerToken, innerErr := fluent.Deserialize[oauth2.Token](bytes)
 			token = innerToken
 			return innerErr
 		}).

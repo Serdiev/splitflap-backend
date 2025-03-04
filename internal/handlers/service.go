@@ -21,14 +21,15 @@ const (
 )
 
 type Application struct {
-	Context              context.Context
-	Sender               MessageSender
-	Spotify              SpotifyClient
-	Stocks               StocksClient
-	State                DisplayState
-	CurrentSplitflapText string
-	Ws                   ws.WebSocket
-	ExternalLCDDisplayIP string
+	Context                     context.Context
+	Sender                      MessageSender
+	Spotify                     SpotifyClient
+	Stocks                      StocksClient
+	State                       DisplayState
+	Ws                          ws.WebSocket
+	ExternalLcdDisplayIpAddress string
+	CurrentSplitflapText        string
+	CurrentDisplayedImageUrl    string
 }
 
 type MessageSender interface {
@@ -48,6 +49,7 @@ func (a *Application) SetState(state DisplayState) {
 func (a *Application) SetToIdleState(sentBy string) {
 	a.State = Idle
 	_ = a.Sender.SendMessage(strings.Repeat(" ", cfg.Splitflap.ModuleCount), sentBy)
+	_ = a.SendImage(utils.EmptyImage())
 }
 
 // Sets text with correct length (inserting spaces or truncating)

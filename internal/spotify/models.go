@@ -50,6 +50,7 @@ type Item struct {
 	ExternalURLs     ExternalURL  `json:"external_urls"`
 	Href             string       `json:"href"`
 	ID               string       `json:"id"`
+	Images           []Image      `json:"images"`
 	IsPlayable       bool         `json:"is_playable"`
 	LinkedFrom       LinkedFrom   `json:"linked_from"`
 	Restrictions     Restrictions `json:"restrictions"`

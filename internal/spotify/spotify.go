@@ -1,13 +1,14 @@
 package spotify
 
 import (
-	"encoding/json"
+	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	config "splitflap-backend/configs"
+	"splitflap-backend/internal/logger"
 	"splitflap-backend/internal/models"
 	"splitflap-backend/internal/utils"
+	"splitflap-backend/pkg/fluent"
 	"strings"
 	"time"
 )
@@ -53,47 +54,52 @@ func (sc *SpotifyClient) GetCurrentlyPlaying() (*models.SpotifyIsPlaying, error)
 		return nil, nil
 	}
 
-	resp, err := sc.client.Get(cfg.Spotify.BaseUrl + "/me/player/currently-playing?additional_types=track,episode")
-	if err != nil {
-		return nil, fmt.Errorf("failed to get the current song: %w", err)
-	}
-	defer resp.Body.Close()
+	var spotifyResp *SpotifyResponse
 
-	if resp.StatusCode == http.StatusNoContent {
-		return nil, nil
-	}
+	err := fluent.Get(cfg.Spotify.BaseUrl+"/me/player/currently-playing?additional_types=track,episode").
+		WithClient(sc.client).
+		OnStatusCode(http.StatusNoContent, func(_ []byte) error {
+			return nil
+		}).
+		OnSuccess(func(payload []byte) error {
+			res, err := fluent.Deserialize[SpotifyResponse](payload)
+			if err != nil {
+				return fmt.Errorf("failed to parse API response: %w", err)
+			}
+			spotifyResp = res
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to get the current song, status code: %d", resp.StatusCode)
-	}
+			return nil
+		}).
+		OnError(func(payload []byte) error {
+			return fmt.Errorf("failed to get the current song. err:%s", string(payload))
+		}).
+		Execute()
 
-	var spotifyResp SpotifyResponse
-
-	bytes, err := io.ReadAll(resp.Body)
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to read bytes")
-	}
-
-	err = json.Unmarshal(bytes, &spotifyResp)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse API response: %w", err)
+	if err != nil || spotifyResp == nil {
+		logger.Error().Err(err).Msg("failed to get the current song")
+		return nil, errors.New("failed to get the current song")
 	}
 
 	if spotifyResp.IsPlaying {
-		dto := mapToDto(spotifyResp)
-		return dto, nil
+		return mapToDto(spotifyResp), nil
 	}
 
 	return nil, nil
 }
 
-func mapToDto(resp SpotifyResponse) *models.SpotifyIsPlaying {
+func mapToDto(resp *SpotifyResponse) *models.SpotifyIsPlaying {
 	secondsLeft := asSeconds(resp.Item.DurationMS - resp.ProgressMS)
 	imageUrl := ""
 	for _, image := range resp.Item.Album.Images {
 		if image.Height == 64 && image.Width == 64 {
 			imageUrl = image.URL
+		}
+	}
+	if imageUrl == "" {
+		for _, image := range resp.Item.Images {
+			if image.Height == 64 && image.Width == 64 {
+				imageUrl = image.URL
+			}
 		}
 	}
 

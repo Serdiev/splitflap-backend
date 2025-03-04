@@ -16,11 +16,11 @@ type Configuration struct {
 }
 
 type General struct {
-	TimeZone             string
-	CertFile             string
-	KeyFile              string
-	IsLocal              bool
-	ExternalLCDDisplayIP string
+	TimeZone                    string
+	CertFile                    string
+	KeyFile                     string
+	IsLocal                     bool
+	ExternalLcdDisplayIpAddress string
 }
 
 type MQTTConfig struct {
@@ -84,11 +84,11 @@ func New() Configuration {
 			AlphabetESP32Order:  GetVar("ALPHABET_ESP32_ORDER", " abcdefghijklmnopqrstuvwxyz0123456789.,'"),
 		},
 		General: General{
-			TimeZone:             GetVar("TIMEZONE", "Europe/Stockholm"),
-			CertFile:             GetVar("LETSENCRYPT_CERTFILE", ""),
-			KeyFile:              GetVar("LETSENCRYPT_KEYFILE", ""),
-			IsLocal:              GetVar("IS_LOCAL", "f") == "TRUE",
-			ExternalLCDDisplayIP: GetVar("EXTERNAL_LCD_DISPLAY_IP", ""),
+			TimeZone:                    GetVar("TIMEZONE", "Europe/Stockholm"),
+			CertFile:                    GetVar("LETSENCRYPT_CERTFILE", ""),
+			KeyFile:                     GetVar("LETSENCRYPT_KEYFILE", ""),
+			IsLocal:                     GetVar("IS_LOCAL", "f") == "TRUE",
+			ExternalLcdDisplayIpAddress: GetVar("EXTERNAL_LCD_DISPLAY_IP", ""),
 		},
 	}
 

@@ -178,7 +178,7 @@
     function currentlyPlaying() {
       $.ajax({
         type: "GET",
-        url: "/playing",
+        url: "/api/playing",
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         success: function (response) {
@@ -196,7 +196,7 @@
     function toggleActive() {
       $.ajax({
         type: "POST",
-        url: "/toggle",
+        url: "/api/toggle",
         success: function (response) {
           var newMessageDiv = $("<div>").text(response["isActive"]);
           $('#messages-sent').append(newMessageDiv);
@@ -232,7 +232,7 @@
 
     $.ajax({
       type: "GET",
-      url: "/message", // Replace with your actual endpoint URL
+      url: "/api/message", // Replace with your actual endpoint URL
       contentType: "application/json; charset=utf-8",
       dataType: "json",
       success: function (response) {
@@ -288,7 +288,7 @@
       }
     }
 
-    const socket = new WebSocket('wss://' + window.location.host + '/ws');
+    const socket = new WebSocket('wss://' + window.location.host + '/api/ws');
     socket.onmessage = function (event) {
       const currentText = JSON.parse(event.data).currentText
       console.log("c", currentText)
@@ -310,7 +310,7 @@
 
       $.ajax({
         type: "POST",
-        url: "/message", // Replace with your actual endpoint URL
+        url: "/api/message", // Replace with your actual endpoint URL
         data: JSON.stringify(data),
         contentType: "application/json; charset=utf-8",
         dataType: "json",

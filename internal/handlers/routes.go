@@ -39,20 +39,23 @@ func SetupRouting(a *Application) *gin.Engine {
 
 	r.Use(cors.New(config))
 
-	r.GET("/login", a.SpotifyLogin)
-	r.GET("/callback", a.SpotifyLoginCallback)
-	r.GET("/playing", a.GetCurrentlyPlaying)
-	r.POST("/toggle", a.ToggleSpotify)
+	r.Group("/api")
+	{
+		r.GET("/login", a.SpotifyLogin)
+		r.GET("/api/callback", a.SpotifyLoginCallback)
+		r.GET("/api/playing", a.GetCurrentlyPlaying)
+		r.POST("/api/toggle", a.ToggleSpotify)
 
-	r.GET("/message", a.GetCurrentMessage)
-	r.POST("/message", utils.ValidateRequest(a.SendMessage))
+		r.GET("/api/message", a.GetCurrentMessage)
+		r.POST("/api/message", utils.ValidateRequest(a.SendMessage))
 
-	r.POST("/actions", utils.ValidateRequest(a.PostAction))
-	r.GET("/actions", a.GetActions)
+		r.POST("/api/actions", utils.ValidateRequest(a.PostAction))
+		r.GET("/api/actions", a.GetActions)
 
-	r.GET("/ws", a.Ws.HandleWebSocket)
+		r.GET("/api/ws", a.Ws.HandleWebSocket)
 
-	r.POST("/ip", utils.ValidateRequest(a.UpdateESP32IPAddress))
+		r.POST("/api/ip", utils.ValidateRequest(a.UpdateESP32IPAddress))
+	}
 
 	// host webpage to interact
 	r.LoadHTMLGlob("html/*.html")
@@ -62,7 +65,7 @@ func SetupRouting(a *Application) *gin.Engine {
 		})
 	})
 
-	r.GET("_/health", func(c *gin.Context) {
+	r.GET("/_/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
 

@@ -38,7 +38,7 @@ func (c AvanzaClient) getStockData(avanzaID string) (*AvanzaResponse, error) {
 	err := fluent.Get(url).
 		WithHeader("user-agent", userAgent).
 		OnSuccess(func(bytes []byte) error {
-			res, innerErr := fluent.BytesToStruct[AvanzaResponse](bytes)
+			res, innerErr := fluent.Deserialize[AvanzaResponse](bytes)
 			series = res
 			return innerErr
 		}).

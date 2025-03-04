@@ -16,12 +16,12 @@ var App Application
 
 func CreateService(c context.Context) *Application {
 	a := &Application{
-		Context:              c,
-		Spotify:              spotify.NewNoopSpotifyClient(), // gets replaced with real client once we login to spotify
-		Stocks:               stocks.NewAvanzaClient(),
-		State:                Idle,
-		Ws:                   *ws.NewWebsocket(),
-		ExternalLCDDisplayIP: cfg.General.ExternalLCDDisplayIP,
+		Context:                     c,
+		Spotify:                     spotify.NewNoopSpotifyClient(), // gets replaced with real client once we login to spotify
+		Stocks:                      stocks.NewAvanzaClient(),
+		State:                       Idle,
+		Ws:                          *ws.NewWebsocket(),
+		ExternalLcdDisplayIpAddress: cfg.General.ExternalLcdDisplayIpAddress,
 	}
 
 	a.Sender = GetSender(a.HandleSplitflapState)

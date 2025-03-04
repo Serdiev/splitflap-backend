@@ -12,12 +12,11 @@ type Boop struct {
 }
 
 func (a *Application) UpdateESP32IPAddress(ctx *gin.Context, request Boop) {
-	if request.Secret != "secret" {
+	if request.Secret != "boopedo" {
 		ctx.Status(http.StatusUnauthorized)
 		return
 	}
 
-	a.ExternalLCDDisplayIP = request.IpAddress
-
+	a.ExternalLcdDisplayIpAddress = request.IpAddress
 	ctx.Status(http.StatusNoContent)
 }

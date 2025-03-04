@@ -25,10 +25,10 @@ func test() {
 }
 
 func main() {
-	img, err := utils.ConvertUrlToImage("https://i.scdn.co/image/ab67616d000048514e0362c225863f6ae2432651")
+	img := utils.ConvertUrlToImage("https://i.scdn.co/image/ab67616d000048514e0362c225863f6ae2432651")
 	// fmt.Println(img, err)
 
-	// // img, err = utils.ConvertUrlToImage("https://fakeimg.pl/64/?text=Hello")
+	// // img = utils.ConvertUrlToImage("https://fakeimg.pl/64/?text=Hello")
 	// if err != nil {
 	// 	fmt.Println("failed to convert url to image:", err)
 	// 	return
