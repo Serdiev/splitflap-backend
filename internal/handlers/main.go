@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"splitflap-backend/internal/sender"
 	"splitflap-backend/internal/spotify"
 	"splitflap-backend/internal/stocks"
@@ -15,6 +16,7 @@ var cfg = config.New()
 var App Application
 
 func CreateService(c context.Context) *Application {
+	fmt.Println(cfg)
 	a := &Application{
 		Context:                     c,
 		Spotify:                     spotify.NewNoopSpotifyClient(), // gets replaced with real client once we login to spotify

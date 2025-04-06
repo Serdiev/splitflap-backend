@@ -167,7 +167,7 @@
   <div class="splitflap">
   </div>
 
-  <button type="button" onclick="sendMessage()">Send Message</button>
+  <button type="button" style="margin-top: 16px;" onclick="sendMessage()">Send Message</button>
   <div class="flex-column">
     <div style="color: #fff;">Messages sent</div>
     <div style="color: #fff;" id="messages-sent" class="flex-column">
@@ -214,6 +214,11 @@
   </script>
 
   <script>
+    function log(message) {
+      const newMessageDiv = $("<div>").text(message);
+      $('#messages-sent').append(newMessageDiv);
+    }
+
     const sf = document.querySelector('.splitflap');
 
     for (let i = 0; i < 24; i++) {
@@ -238,7 +243,7 @@
       success: function (response) {
         console.log("Message received successfully:", response);
         for (let i = 0; i < flapInputs.length; i++) {
-          flapInputs[i].value = response.currentText[i].toUpperCase();
+          flapInputs[i].value = response.currentText[i].toUpperCase().replace(" ", "");
         }
       },
       error: function (error) {
@@ -246,24 +251,51 @@
       }
     });
 
+    function isDesktop() {
+      return !/Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+
+
+    const setInput = (i, value) => {
+      flapInputs[i].value = value;
+    }
 
     for (let i = 0; i < flapInputs.length; i++) {
+      if (isDesktop()) {
+        flapInputs[i].addEventListener('focus', (event) => {
+          if (flapInputs[i].value.length >= 1) {
+            flapInputs[i].value = "";
+          }
+        })
+
+        flapInputs[i].addEventListener('input', (event) => {
+          if (event.target.value.length >= 1 && i != 23) {
+            flapInputs[i + 1].focus();
+            if (flapInputs[i + 1].value.length >= 1) {
+              flapInputs[i + 1].value = "";
+            }
+          } else if (i != 0) {
+            if (flapInputs[i - 1].value.length >= 1) {
+              flapInputs[i - 1].value = "";
+            }
+            flapInputs[i - 1].focus()
+          }
+        });
+      }
+
       flapInputs[i].onkeydown = (event) => {
         const pressed = event.key
         if (pressed == "Backspace") {
-          console.log("back")
-          flapInputs[i].value = ' '
+          flapInputs[i].value = ''
           if (i != 0) {
             flapInputs[i - 1].focus()
           }
         } else if (pressed == "Delete") {
-          console.log("delete")
-          flapInputs[i].value = ' '
+          flapInputs[i].value = ''
           if (i == 23) return
           flapInputs[i + 1].focus()
         } else if (pressed.includes("Left")) {
           if (i == 0) return
-
           flapInputs[i - 1].focus()
         } else if (pressed.includes("Up")) {
           if (i < 12) return
@@ -280,18 +312,12 @@
           if (i == 23) return
           flapInputs[i + 1].focus()
         }
-
-        let text = ""
-        for (let i = 0; i < flapInputs.length; i++) {
-          text += flapInputs[i].value
-        }
       }
     }
 
     const socket = new WebSocket('wss://' + window.location.host + '/api/ws');
     socket.onmessage = function (event) {
       const currentText = JSON.parse(event.data).currentText
-      console.log("c", currentText)
       for (let i = 0; i < flapInputs.length; i++) {
         flapInputs[i].value = currentText[i].toUpperCase();
       }
@@ -310,15 +336,12 @@
 
       $.ajax({
         type: "POST",
-        url: "/api/message", // Replace with your actual endpoint URL
+        url: "/api/message",
         data: JSON.stringify(data),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         success: function (response) {
-          console.log("Message sent successfully:", response);
-          var newMessageDiv = $("<div>").text(data.message);
-          $('#messages-sent').append(newMessageDiv);
-          // Handle the success response here
+          log(data.message);
         },
         error: function (error) {
           console.error("Error sending message:", error);

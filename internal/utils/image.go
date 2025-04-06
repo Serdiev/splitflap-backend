@@ -15,6 +15,16 @@ type Image struct {
 	Image [][]Color `json:"image"`
 }
 
+func (i *Image) InitSize(width, height int) {
+	i.Image = make([][]Color, height)
+	for y := 0; y < height; y++ {
+		i.Image[y] = make([]Color, width)
+		for x := 0; x < width; x++ {
+			i.Image[y][x] = Color{R: 0, G: 0, B: 0}
+		}
+	}
+}
+
 type Color struct {
 	R uint8 `json:"r"`
 	G uint8 `json:"g"`
@@ -39,16 +49,17 @@ func (img *Image) ToBytes() ([]byte, error) {
 
 	height := uint8(len(img.Image))
 	width := uint8(len(img.Image[0])) // Assume non-empty rows
+	fmt.Println("width", width)
+	fmt.Println("height", height)
 
 	ints = append(ints, width)
 	ints = append(ints, height)
 
 	for y := uint8(0); y < height; y++ {
 		for x := uint8(0); x < width; x++ {
-			pixel := img.Image[y][x]
-			ints = append(ints, pixel.R)
-			ints = append(ints, pixel.G)
-			ints = append(ints, pixel.B)
+			ints = append(ints, img.Image[y][x].R)
+			ints = append(ints, img.Image[y][x].G)
+			ints = append(ints, img.Image[y][x].B)
 		}
 	}
 

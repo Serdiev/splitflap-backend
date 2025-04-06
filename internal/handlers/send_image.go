@@ -9,18 +9,13 @@ import (
 )
 
 func (a *Application) SendImage(img *utils.Image) error {
-	if a.ExternalLcdDisplayIpAddress == "" {
-		return nil
-	}
-
 	if img == nil {
 		return errors.New("img is nil")
 	}
-	if a.CurrentDisplayedImageUrl == img.Url {
+	if a.CurrentDisplayedImageUrl == img.Url || a.ExternalLcdDisplayIpAddress == "" {
 		return nil
 	}
 
-	// TODO: will probably trigger a lot of errors if its not live.
 	a.CurrentDisplayedImageUrl = img.Url
 
 	bytes, err := img.ToBytes()

@@ -38,6 +38,7 @@ type MessageSender interface {
 
 type StocksClient interface {
 	GetStockInfo(s stocks.Stock) (*models.StockInfo, error)
+	GetOHLCData(s stocks.Stock) (*models.OHLCData, error)
 }
 
 // Sets text with correct length (inserting spaces or truncating)

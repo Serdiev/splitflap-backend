@@ -1,83 +1,132 @@
 package main
 
 import (
-	"errors"
+	"context"
 	"fmt"
+	"math"
+	"splitflap-backend/internal/handlers"
+	"splitflap-backend/internal/models"
+	"splitflap-backend/internal/stocks"
+
+	// "splitflap-backend/internal/stocks"
 	"splitflap-backend/internal/utils"
-	"splitflap-backend/pkg/fluent"
 )
 
-func test() {
-	img := utils.Image{
-		Image: [][]utils.Color{
-			{{255, 0, 0}, {0, 255, 0}},   // Red, Green
-			{{0, 0, 255}, {255, 255, 0}}, // Blue, Yellow
-		},
-	}
+func main() {
 
-	binaryData, err := img.ToBytes()
+	svc := handlers.CreateService(context.Background())
+	svc.ExternalLcdDisplayIpAddress = "192.168.1.241"
+
+	img := utils.ConvertUrlToImage("https://fakeimg.pl/64x64")
+
+	fmt.Println("send img")
+	err := svc.SendImage(img)
 	if err != nil {
-		fmt.Println("Error:", err)
-		return
+		fmt.Println(err)
+	} else {
+		fmt.Println("Image sent")
 	}
-
-	fmt.Println("Binary Data:", binaryData)
 }
 
-func main() {
-	img := utils.ConvertUrlToImage("https://i.scdn.co/image/ab67616d000048514e0362c225863f6ae2432651")
-	// fmt.Println(img, err)
+func main2() {
 
-	// // img = utils.ConvertUrlToImage("https://fakeimg.pl/64/?text=Hello")
-	// if err != nil {
-	// 	fmt.Println("failed to convert url to image:", err)
-	// 	return
-	// }
+	svc := handlers.CreateService(context.Background())
 
-	// img := utils.Image{
-	// 	Image: [][]utils.Color{
-	// 		{{255, 0, 0}, {0, 255, 0}},   // Red, Green
-	// 		{{0, 0, 255}, {255, 255, 0}}, // Blue, Yellow
-	// 	},
-	// }
-	// img := utils.Image{
-	// 	Image: [][]utils.Color{
-	// 		{{255, 0, 0}, {255, 255, 0}, {177, 177, 177}}, // Red, Green
-	// 		{{0, 0, 255}, {6, 71, 163}, {255, 0, 127}},    // Blue, Yellow
-	// 		{{0, 0, 255}, {255, 255, 0}, {0, 255, 0}},     // Blue, Yellow
-	// 	},
-	// }
+	cl := stocks.NewAvanzaClient()
 
-	// bts, err := json.Marshal(img)
-	bts, err := img.ToBytes()
-	// bytes, err := json.Marshal(img)
+	msft := stocks.TRACKED_STOCKS[1]
+	ohlc, err := cl.GetOHLCData(msft)
 	if err != nil {
-		fmt.Println("failed to get image bytes", err)
+		fmt.Println(err)
 		return
 	}
+	fmt.Println(ohlc)
 
-	// fmt.Println("Binary Data:", bts)
-	// fmt.Println("[]byte length:", len(bts))
+	// ohlc.OHLC = []models.OHLC{}
 
-	url := fmt.Sprintf("http://%s:8080/image", "192.168.1.233")
-
-	// resp, err := http.Post(url, "application/octet-stream", bytes.NewReader(bts))
-	// if err != nil {
-	// 	fmt.Println("Error sending request:", err)
-	// 	return
+	// fakeData := []int{0, 1, 2, 1, 0, -1, -2, -1, 0, 1, 2, 1, 0}
+	// for _, val := range fakeData {
+	// 	ohlc.OHLC = append(ohlc.OHLC, models.OHLC{Close: float64(val)})
 	// }
-	// defer resp.Body.Close()
 
-	fmt.Println("content", fmt.Sprintf("%d", len(bts)))
-	err = fluent.Post(url, bts).
-		WithHeader("Content-Length", fmt.Sprintf("%d", len(bts))).
-		OnSuccess(func(bytes []byte) error {
-			return nil
-		}).
-		OnError(func(bytes []byte) error {
-			return errors.New(string(bytes))
-		}).
-		Execute()
+	height := 135
+	width := 240
 
-	fmt.Println(err)
+	interpolated := InterpolateOHLC(ohlc.OHLC, width)
+
+	scaledValuesInt := make([]int, len(interpolated))
+	for i, val := range interpolated {
+		scaledValuesInt[i] = int(math.Round(ScaleToDisplay(val, ohlc.GetMinValue(), ohlc.GetMaxValue(), height)))
+	}
+
+	fmt.Println(scaledValuesInt)
+	img := utils.Image{
+		Url:   "https://www.avanza.se/_api/market-guide/stock/MSFT",
+		Image: make([][]utils.Color, height),
+	}
+
+	img.InitSize(width, height)
+
+	fmt.Println(img.Image)
+
+	for x, intVal := range scaledValuesInt {
+		img.Image[intVal][x] = utils.Color{R: 0, G: 255, B: 0}
+	}
+
+	// img := utils.Image{
+	// 	Url:   "https://www.avanza.se/_api/market-guide/stock/MSFT",
+	// 	Image: [][]utils.Color{},
+	// }
+
+	// img.InitSize(240, 135)
+	// fmt.Println(img.Image)
+	// // color all pixels in the image to green
+	// for y := 0; y < len(img.Image); y++ {
+	// 	for x := 0; x < len(img.Image[0]); x++ {
+	// 		img.Image[y][x] = utils.Color{R: uint8(x), G: 0, B: uint8(y)}
+	// 	}
+	// }
+
+	fmt.Println("send img")
+	err = svc.SendImage(&img)
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println("Image sent")
+	}
+}
+
+func ScaleToDisplay(value, minSource, maxSource float64, height int) float64 {
+	// Normalize to [0, 1]
+	normalized := (value - minSource) / (maxSource - minSource)
+
+	// Scale to [0, displayHeight - 1] and invert Y-axis
+	scaled := (1 - normalized) * (float64(height - 1))
+
+	return scaled
+}
+
+func InterpolateOHLC(data []models.OHLC, targetLength int) []float64 {
+	result := make([]float64, targetLength)
+	srcLen := len(data)
+
+	for i := 0; i < targetLength; i++ {
+		// Map index to source fractional position
+		pos := float64(i) * float64(srcLen-1) / float64(targetLength-1)
+
+		// Lower index
+		idx := int(math.Floor(pos))
+		frac := pos - float64(idx) // Fractional part
+
+		// Linear interpolate
+		if idx >= srcLen-1 {
+			result[i] = data[srcLen-1].Close
+		} else {
+			start := data[idx].Close
+			end := data[idx+1].Close
+			result[i] = start + (end-start)*frac
+		}
+	}
+
+	return result
 }

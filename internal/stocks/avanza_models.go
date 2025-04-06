@@ -107,3 +107,26 @@ type AvanzaQuote struct {
 	Updated                    int64   `json:"updated"`
 	VolumeWeightedAveragePrice float64 `json:"volumeWeightedAveragePrice"`
 }
+
+type OHLCResponse struct {
+	Ohlc                 []Ohlc   `json:"ohlc"`
+	Metadata             Metadata `json:"metadata"`
+	From                 string   `json:"from"`
+	To                   string   `json:"to"`
+	PreviousClosingPrice float64  `json:"previousClosingPrice"`
+}
+type Ohlc struct {
+	Timestamp         int64   `json:"timestamp"`
+	Open              float64 `json:"open"`
+	Close             float64 `json:"close"`
+	High              float64 `json:"high"`
+	Low               float64 `json:"low"`
+	TotalVolumeTraded int64   `json:"totalVolumeTraded"`
+}
+type Resolution struct {
+	ChartResolution      string   `json:"chartResolution"`
+	AvailableResolutions []string `json:"availableResolutions"`
+}
+type Metadata struct {
+	Resolution Resolution `json:"resolution"`
+}
