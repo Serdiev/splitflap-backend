@@ -1,0 +1,7 @@
+
+###
+POST https://fdevc.store/api/image/esp32
+
+{
+  "image_url": "https://i.scdn2.co/image/ab67616d000048519b9b36b0e22870b9f542d937"
+}

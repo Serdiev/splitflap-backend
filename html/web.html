@@ -152,7 +152,8 @@
 
 <body>
   <header>
-    <a id="spotify-login" href="/login">Spotify Login</a>
+    <a id="spotify-login" href="/login?device_id=splitflap">Splitflap Spotify Login</a>
+    <a id="spotify-login" href="/login?device_id=esp32">ESP32 Spotify Login</a>
     <div class="logged-in">Logged into Spotify</div>
     <div class="check-currently-playing" onclick="currentlyPlaying()">Check what's currently playing</div>
     <div class="currently-playing">
@@ -251,8 +252,8 @@
       }
     });
 
-    function isDesktop() {
-      return !/Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    function isMobile() {
+      return /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     }
 
 
@@ -261,56 +262,71 @@
     }
 
     for (let i = 0; i < flapInputs.length; i++) {
-      if (isDesktop()) {
-        flapInputs[i].addEventListener('focus', (event) => {
-          if (flapInputs[i].value.length >= 1) {
-            flapInputs[i].value = "";
-          }
-        })
 
-        flapInputs[i].addEventListener('input', (event) => {
-          if (event.target.value.length >= 1 && i != 23) {
-            flapInputs[i + 1].focus();
-            if (flapInputs[i + 1].value.length >= 1) {
-              flapInputs[i + 1].value = "";
-            }
-          } else if (i != 0) {
-            if (flapInputs[i - 1].value.length >= 1) {
-              flapInputs[i - 1].value = "";
-            }
-            flapInputs[i - 1].focus()
+      flapInputs[i].addEventListener('focus', (event) => {
+        if (flapInputs[i].value.length >= 1) {
+          flapInputs[i].value = "";
+        }
+      })
+
+      flapInputs[i].addEventListener('input', (event) => {
+        log("Input event triggered for flap " + i + ": " + event.target.value);
+        if (event.target.value.length >= 1 && i != 23) {
+          flapInputs[i + 1].focus();
+          if (flapInputs[i + 1].value.length >= 1) {
+            flapInputs[i + 1].value = "";
           }
-        });
+        } else if (i != 0) {
+          if (flapInputs[i - 1].value.length >= 1) {
+            flapInputs[i - 1].value = "";
+          }
+          flapInputs[i - 1].focus()
+        }
+      });
+
+      if (isMobile) {
+        flapInputs[i].onkeydown = (event) => {
+          const pressed = event.key
+          log("Keydown event triggered for flap " + i + ": " + event.key);
+          if (pressed == "Backspace") {
+            flapInputs[i].value = ''
+            if (i != 0) {
+              flapInputs[i - 1].focus()
+            }
+          }
+        }
       }
 
-      flapInputs[i].onkeydown = (event) => {
-        const pressed = event.key
-        if (pressed == "Backspace") {
-          flapInputs[i].value = ''
-          if (i != 0) {
+      if (!isMobile()) {
+        flapInputs[i].onkeydown = (event) => {
+          const pressed = event.key
+          if (pressed == "Backspace") {
+            flapInputs[i].value = ''
+            if (i != 0) {
+              flapInputs[i - 1].focus()
+            }
+          } else if (pressed == "Delete") {
+            flapInputs[i].value = ''
+            if (i == 23) return
+            flapInputs[i + 1].focus()
+          } else if (pressed.includes("Left")) {
+            if (i == 0) return
             flapInputs[i - 1].focus()
+          } else if (pressed.includes("Up")) {
+            if (i < 12) return
+            flapInputs[i - 12].focus()
+          } else if (pressed.includes("Right")) {
+            if (i == 23) return
+            flapInputs[i + 1].focus()
+          } else if (pressed.includes("Down")) {
+            if (i > 11) return
+            flapInputs[i + 12].focus()
           }
-        } else if (pressed == "Delete") {
-          flapInputs[i].value = ''
-          if (i == 23) return
-          flapInputs[i + 1].focus()
-        } else if (pressed.includes("Left")) {
-          if (i == 0) return
-          flapInputs[i - 1].focus()
-        } else if (pressed.includes("Up")) {
-          if (i < 12) return
-          flapInputs[i - 12].focus()
-        } else if (pressed.includes("Right")) {
-          if (i == 23) return
-          flapInputs[i + 1].focus()
-        } else if (pressed.includes("Down")) {
-          if (i > 11) return
-          flapInputs[i + 12].focus()
-        }
-        else if (pressed.length == 1) {
-          flapInputs[i].value = pressed.toUpperCase()
-          if (i == 23) return
-          flapInputs[i + 1].focus()
+          else if (pressed.length == 1 && isMobile()) {
+            flapInputs[i].value = pressed.toUpperCase()
+            if (i == 23) return
+            flapInputs[i + 1].focus()
+          }
         }
       }
     }
@@ -327,7 +343,12 @@
       let message = "";
       const flaps = document.querySelectorAll('.inner');
       flaps.forEach(flap => {
-        message += flap.value;
+        console.log("-" + flap.value + "-");
+        if (flap.value.length == 0) {
+          message += " "
+        } else {
+          message += flap.value;
+        }
       });
 
       var data = {

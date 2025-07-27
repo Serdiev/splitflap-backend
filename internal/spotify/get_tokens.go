@@ -3,6 +3,7 @@ package spotify
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/url"
 	"splitflap-backend/internal/logger"
 	"splitflap-backend/pkg/fluent"
@@ -41,10 +42,10 @@ func (sts *SpotifyTokenSource) Token() (*oauth2.Token, error) {
 	return newToken, nil
 }
 
-func GetInitialAccessToken(code string) *oauth2.Token {
+func GetInitialAccessToken(deviceId string, code string) *oauth2.Token {
 	formData := url.Values{}
 	formData.Set("code", code)
-	formData.Set("redirect_uri", cfg.Spotify.RedirectUrl)
+	formData.Set("redirect_uri", cfg.Spotify.RedirectUrl+"/"+deviceId)
 	formData.Set("grant_type", "authorization_code")
 
 	token := oauth2.Token{}
@@ -53,6 +54,7 @@ func GetInitialAccessToken(code string) *oauth2.Token {
 		WithClientCredentials(cfg.Spotify.ClientId, cfg.Spotify.ClientSecret).
 		WithContentType("application/x-www-form-urlencoded").
 		OnSuccess(func(bytes []byte) error {
+			fmt.Println("res", string(bytes))
 			innerErr := json.Unmarshal(bytes, &token)
 
 			if innerErr != nil {
@@ -60,6 +62,10 @@ func GetInitialAccessToken(code string) *oauth2.Token {
 			}
 
 			return nil
+		}).
+		OnError(func(bytes []byte) error {
+			logger.Error().Bytes("response", bytes).Msg("failed to get initial access token")
+			return fmt.Errorf("failed to get initial access token, response: %s", string(bytes))
 		}).
 		Execute()
 

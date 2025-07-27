@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"splitflap-backend/internal/lcd_display"
 	"splitflap-backend/internal/models"
 	"splitflap-backend/internal/stocks"
 	"splitflap-backend/internal/utils"
@@ -30,6 +31,7 @@ type Application struct {
 	ExternalLcdDisplayIpAddress string
 	CurrentSplitflapText        string
 	CurrentDisplayedImageUrl    string
+	LcdDisplays                 map[string]*lcd_display.LcdDisplay
 }
 
 type MessageSender interface {

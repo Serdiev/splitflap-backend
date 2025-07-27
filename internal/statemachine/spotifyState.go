@@ -56,7 +56,7 @@ func (s *StateHandler) handleSpotifyState() {
 
 		msg := getPlayingText(playing)
 		s.App.Sender.SendMessage(msg, "spotify playing")
-		s.App.SendImage(utils.ConvertUrlToImage(playing.Image64PixelUrl))
+		// s.App.SendImage(utils.ConvertUrlToImage(playing.Image64PixelUrl))
 	}
 }
 

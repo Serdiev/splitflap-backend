@@ -45,25 +45,25 @@ func EmptyImage() *Image {
 
 // Constructs a byte array [width, height, R, G, B, R, G, B, ...]
 func (img *Image) ToBytes() ([]byte, error) {
-	ints := []uint8{}
+	imgBytes := []uint8{}
 
 	height := uint8(len(img.Image))
 	width := uint8(len(img.Image[0])) // Assume non-empty rows
 	fmt.Println("width", width)
 	fmt.Println("height", height)
 
-	ints = append(ints, width)
-	ints = append(ints, height)
+	imgBytes = append(imgBytes, width)
+	imgBytes = append(imgBytes, height)
 
 	for y := uint8(0); y < height; y++ {
 		for x := uint8(0); x < width; x++ {
-			ints = append(ints, img.Image[y][x].R)
-			ints = append(ints, img.Image[y][x].G)
-			ints = append(ints, img.Image[y][x].B)
+			imgBytes = append(imgBytes, img.Image[y][x].R)
+			imgBytes = append(imgBytes, img.Image[y][x].G)
+			imgBytes = append(imgBytes, img.Image[y][x].B)
 		}
 	}
 
-	return ints, nil
+	return imgBytes, nil
 }
 
 func NewColor(r, g, b uint8) Color {

@@ -4,15 +4,17 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/joho/godotenv"
 )
 
 type Configuration struct {
-	MQTT      MQTTConfig
-	Spotify   SpotifyConfig
-	Splitflap SplitFlapConfig
-	General   General
+	MQTT              MQTTConfig
+	Spotify           SpotifyConfig
+	Splitflap         SplitFlapConfig
+	General           General
+	LcdConfigurations []LcdConfiguration
 }
 
 type General struct {
@@ -27,6 +29,12 @@ type MQTTConfig struct {
 	Enabled   bool
 	BrokerUrl string
 	Topic     string
+}
+
+type LcdConfiguration struct {
+	Id           string
+	ClientId     string
+	ClientSecret string
 }
 
 type SplitFlapConfig struct {
@@ -64,11 +72,6 @@ func New() Configuration {
 	}
 
 	cfg = &Configuration{
-		// MQTT: MQTTConfig{
-		// 	Enabled:   GetVar("MQTT_ENABLED") == "true",
-		// 	BrokerUrl: GetVar("MQTT_BROKER"),
-		// 	Topic:     GetVar("MQTT_TOPIC"),
-		// },
 		Spotify: SpotifyConfig{
 			BaseUrl:      GetVar("SPOTIFY_URL", ""),
 			TokenUrl:     GetVar("SPOTIFY_TOKEN_URL", ""),
@@ -90,6 +93,27 @@ func New() Configuration {
 			IsLocal:                     GetVar("IS_LOCAL", "f") == "TRUE",
 			ExternalLcdDisplayIpAddress: GetVar("EXTERNAL_LCD_DISPLAY_IP", ""),
 		},
+		LcdConfigurations: []LcdConfiguration{},
+	}
+
+	lcdClientIds := GetVar("LCD_CLIENT_IDS", "")
+	lcdSpotifyClientIds := GetVar("LCD_SPOTIFY_CLIENT_IDS", "")
+	lcdSpotifyClientSecrets := GetVar("LCD_SPOTIFY_CLIENT_SECRETS", "")
+	if lcdSpotifyClientIds != "" && lcdSpotifyClientSecrets != "" {
+		ids := strings.Split(lcdClientIds, ",")
+		clientIds := strings.Split(lcdSpotifyClientIds, ",")
+		secrets := strings.Split(lcdSpotifyClientSecrets, ",")
+		if len(ids) != len(clientIds) && len(clientIds) != len(secrets) {
+			panic("LCD mismatch between number of Ids, ClientIds, Secrets")
+		}
+
+		for i := 0; i < len(ids); i++ {
+			cfg.LcdConfigurations = append(cfg.LcdConfigurations, LcdConfiguration{
+				Id:           fmt.Sprintf("lcd-%d", i+1),
+				ClientId:     ids[i],
+				ClientSecret: secrets[i],
+			})
+		}
 	}
 
 	if len(cfg.Splitflap.AlphabetOffset) != cfg.Splitflap.ModuleCount {

@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"fmt"
+	"splitflap-backend/internal/lcd_display"
 	"splitflap-backend/internal/sender"
 	"splitflap-backend/internal/spotify"
 	"splitflap-backend/internal/stocks"
@@ -24,6 +25,7 @@ func CreateService(c context.Context) *Application {
 		State:                       Idle,
 		Ws:                          *ws.NewWebsocket(),
 		ExternalLcdDisplayIpAddress: cfg.General.ExternalLcdDisplayIpAddress,
+		LcdDisplays:                 map[string]*lcd_display.LcdDisplay{},
 	}
 
 	a.Sender = GetSender(a.HandleSplitflapState)

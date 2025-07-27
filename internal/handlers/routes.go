@@ -41,8 +41,8 @@ func SetupRouting(a *Application) *gin.Engine {
 
 	r.Group("/api")
 	{
-		r.GET("/login", a.SpotifyLogin)
-		r.GET("/api/callback", a.SpotifyLoginCallback)
+		r.GET("/login", utils.ValidateQuery(a.SpotifyLogin))
+		r.GET("/api/callback/:id", utils.ValidateQuery(a.SpotifyLoginCallback))
 		r.GET("/api/playing", a.GetCurrentlyPlaying)
 		r.POST("/api/toggle", a.ToggleSpotify)
 
@@ -55,6 +55,8 @@ func SetupRouting(a *Application) *gin.Engine {
 		r.GET("/api/ws", a.Ws.HandleWebSocket)
 
 		r.POST("/api/ip", utils.ValidateRequest(a.UpdateESP32IPAddress))
+
+		r.POST("/api/image/:id", utils.ValidateRequest(a.FetchImage))
 	}
 
 	// host webpage to interact
