@@ -11,7 +11,7 @@ func TestMapForSending(t *testing.T) {
 	output := utils.MapForSending(expected)
 	input := utils.MapForReading(output)
 
-	if input != expected+"1" {
+	if input != expected {
 		t.Errorf("MapForSending(%q) = %q; want %q", input, input, expected)
 	}
 }

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Webcam 64x64 Capture</title>
+  <style>
+    video,
+    canvas {
+      display: inline-block;
+      margin: 10px;
+      border: 1px solid #444;
+    }
+
+    pre {
+      max-height: 300px;
+      overflow: auto;
+      background: #111;
+      color: #0f0;
+      padding: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <h2>Webcam Capture (64x64)</h2>
+  <video id="video" autoplay></video>
+  <button id="capture">Take Picture</button>
+  <br>
+  <canvas id="canvas" width="64" height="64" style="display:none;"></canvas>
+  <canvas id="preview" width="64" height="64"></canvas>
+  <pre id="output"></pre>
+
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas'); // hidden working canvas
+    const ctx = canvas.getContext('2d');
+    const preview = document.getElementById('preview'); // visible 64x64 result
+    const previewCtx = preview.getContext('2d');
+    const output = document.getElementById('output');
+
+    // Ask for webcam
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => { video.srcObject = stream; })
+      .catch(err => console.error("Error accessing webcam:", err));
+
+    document.getElementById('capture').addEventListener('click', () => {
+      // Draw video frame into 64x64 canvas
+      ctx.drawImage(video, 0, 0, 64, 64);
+
+      // Copy to preview canvas (so user sees the scaled-down result)
+      previewCtx.drawImage(canvas, 0, 0);
+
+      // Get pixel data
+      const imageData = ctx.getImageData(0, 0, 64, 64);
+      const data = imageData.data;
+      const pixels = [];
+
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        pixels.push([r, g, b]);
+      }
+
+      // Display result
+      output.textContent = JSON.stringify(pixels, null, 2);
+    });
+  </script>
+</body>
+
+</html>

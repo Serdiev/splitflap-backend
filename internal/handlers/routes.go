@@ -39,30 +39,40 @@ func SetupRouting(a *Application) *gin.Engine {
 
 	r.Use(cors.New(config))
 
-	r.Group("/api")
+	api := r.Group("/api")
 	{
-		r.GET("/login", utils.ValidateQuery(a.SpotifyLogin))
-		r.GET("/api/callback/:id", utils.ValidateQuery(a.SpotifyLoginCallback))
-		r.GET("/api/playing", a.GetCurrentlyPlaying)
-		r.POST("/api/toggle", a.ToggleSpotify)
+		// related to login in on spotify
+		api.GET("/login", utils.ValidateQuery(a.SpotifyLogin))
+		api.GET("/callback/:id", utils.ValidateQuery(a.SpotifyLoginCallback))
 
-		r.GET("/api/message", a.GetCurrentMessage)
-		r.POST("/api/message", utils.ValidateRequest(a.SendMessage))
+		api.GET("/logged-in", a.IsLoggedIn)
+		api.GET("/playing", a.GetCurrentlyPlaying)
+		api.POST("/toggle", a.ToggleSpotify)
 
-		r.POST("/api/actions", utils.ValidateRequest(a.PostAction))
-		r.GET("/api/actions", a.GetActions)
+		api.GET("/message", a.GetCurrentMessage)
+		api.POST("/message", utils.ValidateRequest(a.SendMessage))
 
-		r.GET("/api/ws", a.Ws.HandleWebSocket)
+		api.POST("/actions", utils.ValidateRequest(a.PostAction))
+		api.GET("/actions", a.GetActions)
 
-		r.POST("/api/ip", utils.ValidateRequest(a.UpdateESP32IPAddress))
+		api.GET("/ws", a.Ws.HandleWebSocket)
 
-		r.POST("/api/image/:id", utils.ValidateRequest(a.FetchImage))
+		api.POST("/ip", utils.ValidateRequest(a.UpdateESP32IPAddress))
+
+		api.GET("/image/:id/:hash", utils.ValidatePath(a.FetchImage))
+		api.POST("/image/:id", utils.ValidateRequest(a.SetImage))
 	}
 
 	// host webpage to interact
 	r.LoadHTMLGlob("html/*.html")
 	r.GET("/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "web.html", gin.H{
+			"title": "Welcome to the Home Page",
+		})
+	})
+
+	r.GET("/webcam", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "webcam.html", gin.H{
 			"title": "Welcome to the Home Page",
 		})
 	})

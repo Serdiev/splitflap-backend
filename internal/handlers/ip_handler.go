@@ -19,6 +19,5 @@ func (a *Application) UpdateESP32IPAddress(ctx *gin.Context, request Boop) {
 	}
 
 	fmt.Println("Received ip:", request.IpAddress)
-	a.ExternalLcdDisplayIpAddress = request.IpAddress
 	ctx.Status(http.StatusNoContent)
 }

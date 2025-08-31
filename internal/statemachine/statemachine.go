@@ -5,13 +5,18 @@ import (
 	"time"
 )
 
+type StateHandler struct {
+	App *h.Application
+}
+
+var s = StateHandler{}
+
 func Initiate(app *h.Application) {
-	s := StateHandler{App: app}
+	s = StateHandler{App: app}
 
 	stateHandlers := map[h.DisplayState]func() bool{
-		h.Idle:    s.idleState,
-		h.Spotify: s.initSpotifyStateHandler,
-		h.Stocks:  s.initAvanzaHandler,
+		h.Idle:   s.idleState,
+		h.Stocks: s.initAvanzaHandler,
 	}
 
 	ticker := time.NewTicker(time.Second)
@@ -27,10 +32,6 @@ func Initiate(app *h.Application) {
 			}
 		}
 	}
-}
-
-type StateHandler struct {
-	App *h.Application
 }
 
 func (s *StateHandler) idleState() bool {

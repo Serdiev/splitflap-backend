@@ -3,6 +3,7 @@ package spotify
 import (
 	"errors"
 	"fmt"
+	"math"
 	"net/http"
 	config "splitflap-backend/configs"
 	"splitflap-backend/internal/logger"
@@ -16,37 +17,87 @@ import (
 var cfg = config.New()
 
 type SpotifyClient struct {
-	client   *http.Client
-	loggedIn bool
-	isActive bool
+	client        *http.Client
+	loggedIn      bool
+	pauseFetching bool
+	isFetching    bool
+	handlers      map[string]func(playing *models.SpotifyIsPlaying)
 }
 
 func NewNoopSpotifyClient() *SpotifyClient {
 	return &SpotifyClient{
-		loggedIn: false,
-		isActive: false,
+		loggedIn:      false,
+		isFetching:    false,
+		pauseFetching: false,
+		handlers:      map[string]func(playing *models.SpotifyIsPlaying){},
 	}
 }
 
 func NewSpotifyClient(client *http.Client) *SpotifyClient {
 	return &SpotifyClient{
-		client:   client,
-		loggedIn: true,
-		isActive: true,
+		client:        client,
+		loggedIn:      true,
+		isFetching:    false,
+		pauseFetching: true,
+		handlers:      map[string]func(playing *models.SpotifyIsPlaying){},
 	}
 }
 
-func (sc *SpotifyClient) ToggleShouldUpdateSplitFlap() bool {
-	sc.isActive = !sc.isActive
-	return sc.isActive
+func (sc *SpotifyClient) RegisterHandler(name string, handler func(playing *models.SpotifyIsPlaying)) {
+	sc.handlers[name] = handler
 }
 
-func (sc *SpotifyClient) ShouldUpdateSplitFlap() bool {
-	return sc.isActive
+func (sc *SpotifyClient) DeleteHandler(name string) {
+	delete(sc.handlers, name)
 }
 
 func (sc *SpotifyClient) IsLoggedIn() bool {
 	return sc.loggedIn
+}
+
+func (sc *SpotifyClient) Dispose() {
+	sc.isFetching = false
+}
+
+// Runs a loop which fetches the currently playing song every n seconds and calls the registered handlers
+func (sc *SpotifyClient) StartLoop() {
+	if sc.isFetching {
+		return
+	}
+
+	go func() {
+		fmt.Println("Starting spotify client loop")
+		sc.isFetching = true
+		backoffSeconds := 2
+
+		for {
+			if !sc.isFetching {
+				fmt.Println("Exiting loop")
+				return
+			}
+
+			if len(sc.handlers) == 0 {
+				fmt.Println("sleeping because no handlers")
+				time.Sleep(1 * time.Second)
+				continue
+			}
+
+			playing, err := sc.GetCurrentlyPlaying()
+
+			for _, handler := range sc.handlers {
+				handler(playing)
+			}
+
+			if err != nil || playing == nil {
+				backoffSeconds = int(math.Min(float64(backoffSeconds*2), 32))
+				time.Sleep(time.Duration(backoffSeconds) * time.Second)
+				continue
+			}
+
+			backoffSeconds = 2
+			time.Sleep(time.Duration(backoffSeconds) * time.Second)
+		}
+	}()
 }
 
 func (sc *SpotifyClient) GetCurrentlyPlaying() (*models.SpotifyIsPlaying, error) {

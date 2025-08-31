@@ -14,23 +14,24 @@ import (
 
 func main() {
 
-	svc := handlers.CreateService(context.Background())
-	svc.ExternalLcdDisplayIpAddress = "192.168.1.241"
+	fmt.Println("boop")
 
-	img := utils.ConvertUrlToImage("https://fakeimg.pl/64x64")
+	// svc := handlers.CreateService(context.Background())
 
-	fmt.Println("send img")
-	err := svc.SendImage(img)
-	if err != nil {
-		fmt.Println(err)
-	} else {
-		fmt.Println("Image sent")
-	}
+	// img := utils.ConvertUrlToImage("https://fakeimg.pl/64x64")
+
+	// fmt.Println("send img")
+	// if err != nil {
+	// 	fmt.Println(err)
+	// } else {
+	// 	fmt.Println("Image sent")
+	// }
 }
 
 func main2() {
 
 	svc := handlers.CreateService(context.Background())
+	fmt.Println(svc)
 
 	cl := stocks.NewAvanzaClient()
 
@@ -61,7 +62,7 @@ func main2() {
 
 	fmt.Println(scaledValuesInt)
 	img := utils.Image{
-		Url:   "https://www.avanza.se/_api/market-guide/stock/MSFT",
+		Hash:  "https://www.avanza.se/_api/market-guide/stock/MSFT",
 		Image: make([][]utils.Color, height),
 	}
 
@@ -86,14 +87,6 @@ func main2() {
 	// 		img.Image[y][x] = utils.Color{R: uint8(x), G: 0, B: uint8(y)}
 	// 	}
 	// }
-
-	fmt.Println("send img")
-	err = svc.SendImage(&img)
-	if err != nil {
-		fmt.Println(err)
-	} else {
-		fmt.Println("Image sent")
-	}
 }
 
 func ScaleToDisplay(value, minSource, maxSource float64, height int) float64 {

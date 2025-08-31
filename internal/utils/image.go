@@ -2,6 +2,9 @@ package utils
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"image"
 	_ "image/jpeg" // Support for JPEG
@@ -11,8 +14,27 @@ import (
 )
 
 type Image struct {
-	Url   string    `json:"url"`
+	Hash  string    `json:"hash"`
 	Image [][]Color `json:"image"`
+}
+
+func NewImage(img [][]Color) *Image {
+	i := &Image{
+		Image: img,
+	}
+
+	i.ComputeHash()
+	return i
+}
+
+func (img *Image) ComputeHash() {
+	data, err := json.Marshal(img.Image)
+	if err != nil {
+		img.Hash = err.Error()
+	}
+
+	hash := sha256.Sum256(data)
+	img.Hash = hex.EncodeToString(hash[:])[:12]
 }
 
 func (i *Image) InitSize(width, height int) {
@@ -40,7 +62,7 @@ func EmptyImage() *Image {
 		}
 	}
 
-	return &Image{Image: imageData, Url: "empty..."}
+	return NewImage(imageData)
 }
 
 // Constructs a byte array [width, height, R, G, B, R, G, B, ...]
@@ -49,8 +71,6 @@ func (img *Image) ToBytes() ([]byte, error) {
 
 	height := uint8(len(img.Image))
 	width := uint8(len(img.Image[0])) // Assume non-empty rows
-	fmt.Println("width", width)
-	fmt.Println("height", height)
 
 	imgBytes = append(imgBytes, width)
 	imgBytes = append(imgBytes, height)
@@ -95,7 +115,7 @@ func ConvertUrlToImage(url string) (returnImg *Image) {
 				}
 			}
 
-			returnImg = &Image{Image: imageData, Url: url}
+			returnImg = NewImage(imageData)
 			return nil
 		}).
 		OnError(func(payload []byte) error {

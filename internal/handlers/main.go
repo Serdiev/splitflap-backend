@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"fmt"
 	"splitflap-backend/internal/lcd_display"
 	"splitflap-backend/internal/sender"
 	"splitflap-backend/internal/spotify"
@@ -17,15 +16,14 @@ var cfg = config.New()
 var App Application
 
 func CreateService(c context.Context) *Application {
-	fmt.Println(cfg)
 	a := &Application{
-		Context:                     c,
-		Spotify:                     spotify.NewNoopSpotifyClient(), // gets replaced with real client once we login to spotify
-		Stocks:                      stocks.NewAvanzaClient(),
-		State:                       Idle,
-		Ws:                          *ws.NewWebsocket(),
-		ExternalLcdDisplayIpAddress: cfg.General.ExternalLcdDisplayIpAddress,
-		LcdDisplays:                 map[string]*lcd_display.LcdDisplay{},
+		Context:                      c,
+		Stocks:                       stocks.NewAvanzaClient(),
+		State:                        Idle,
+		Ws:                           *ws.NewWebsocket(),
+		LcdDisplays:                  map[SpotifyAccountId]*lcd_display.Esp32LcdDisplay{},
+		SpotifyClients:               map[SpotifyAccountId]*spotify.SpotifyClient{},
+		SpotifyShouldUpdateSplitFlap: true,
 	}
 
 	a.Sender = GetSender(a.HandleSplitflapState)

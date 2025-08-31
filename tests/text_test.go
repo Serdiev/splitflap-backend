@@ -55,5 +55,5 @@ func Test_AllThings(t *testing.T) {
 	text.TopRight("+1.24%")
 	text.BottomLeft("YTD")
 	text.BottomRight("+23.34%")
-	assert.Equal(t, "micros+1.24%YTD  +23.34%", text.GetText())
+	assert.Equal(t, "micros+1.24%ytd  +23.34%", text.GetText())
 }

@@ -11,6 +11,14 @@ type SendMessageRequest struct {
 }
 
 func (a *Application) SendMessage(c *gin.Context, request SendMessageRequest) {
-	a.Sender.SendMessage(request.Message, "sendmessage handler")
+	_ = a.Sender.SendMessage(request.Message, "sendmessage handler")
 	c.JSON(http.StatusOK, request)
+}
+
+type CurrentTextResponse struct {
+	CurrentText string `json:"currentText"`
+}
+
+func (a *Application) GetCurrentMessage(c *gin.Context) {
+	c.JSON(http.StatusOK, CurrentTextResponse{CurrentText: a.CurrentSplitflapText})
 }

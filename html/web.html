@@ -20,44 +20,40 @@
 
     header {
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-      background: #1e1e1e;
-      width: 100%;
-      padding: 20px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      color: white;
+      gap: 2px;
     }
 
     header a {
-      text-decoration: none;
-      color: #0f0;
-      font-size: 1.2rem;
+      color: white;
     }
 
-    header .logged-in,
-    header .check-currently-playing,
-    header .currently-playing,
-    header .toggle-active {
-      margin-top: 5px;
-    }
-
-    header .check-currently-playing,
-    header .toggle-active {
-      cursor: pointer;
-      background: #333;
-      border: 2px solid #555;
-      color: #0f0;
-      padding: 8px 15px;
+    .currently-playing {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background-color: #444;
+      padding: 10px;
       border-radius: 5px;
-      font-size: 1rem;
-      transition: background 0.3s;
+      margin-top: 20px;
+      margin-bottom: 20px;
     }
 
-    header .check-currently-playing:hover,
-    header .toggle-active button:hover {
+    .currently-playing div {
+      color: #FFF;
+    }
+
+    .logged-in {
+      display: flex;
+    }
+
+    button {
+      border-radius: 0;
+    }
+
+    button:hover {
       background: #444;
+      color: #000
     }
 
     h2 {
@@ -86,14 +82,14 @@
       box-sizing: border-box;
     }
 
-    button {
+    header button {
       background-color: #dedede;
       color: #000;
       padding: 10px 20px;
       border: none;
-      border-radius: 4px;
       cursor: pointer;
     }
+
 
     .flex-column {
       display: flex;
@@ -145,32 +141,71 @@
       padding: 0;
       margin: 0;
     }
+
+    header button {
+      transform: skew(-10deg);
+    }
+
+    header button div {
+      transform: skew(15deg);
+    }
+
+    .check-currently-playing,
+    .toggle-active {
+      display: none;
+    }
+
+    .logged-in .fredrik-spotify-login {
+      display: none;
+    }
+
+    .logged-in .currently-playing,
+    .logged-in .check-currently-playing,
+    .logged-in .toggle-active {
+      display: flex;
+    }
+
+    a {
+      text-decoration: none;
+    }
   </style>
+
   <!-- Include jQuery library -->
   <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 </head>
 
 <body>
-  <header>
-    <a id="spotify-login" href="/login?device_id=splitflap">Splitflap Spotify Login</a>
-    <a id="spotify-login" href="/login?device_id=esp32">ESP32 Spotify Login</a>
-    <div class="logged-in">Logged into Spotify</div>
-    <div class="check-currently-playing" onclick="currentlyPlaying()">Check what's currently playing</div>
-    <div class="currently-playing">
-      <div class="song">Song: N/A</div>
-      <div class="artist">Artist: N/A</div>
-      <div class="time-left">Time Left: N/A</div>
-    </div>
-    <div class="toggle-active"><button onclick="toggleActive()">Toggle Spotify</button></div>
+  <header class="header">
+    <a class="fredrik-spotify-login" href="api/login?device_id=fredriks-spotify-account">
+      <button id="spotify-login">Splitflap Spotify Login</button>
+    </a>
+    <!-- <a class="esp32-login" href="api/login?device_id=esp32">
+      <button id="spotify-login">ESP32 Spotify Login</button>
+    </a> -->
+    <a>
+      <button class="check-currently-playing" onclick="currentlyPlaying()">
+        Currently playing?
+      </button>
+    </a>
+    <a>
+      <button class="toggle-active" onclick="toggleActive()">
+        Toggle Spotify
+      </button>
+    </a>
   </header>
+
+  <div class="currently-playing">
+    <div class="song">Song: N/A</div>
+    <div class="artist">Artist: N/A</div>
+    <div class="time-left">Time Left: N/A</div>
+  </div>
 
   <!-- Flaps will be generated dynamically -->
   <div class="splitflap">
   </div>
 
-  <button type="button" style="margin-top: 16px;" onclick="sendMessage()">Send Message</button>
+  <button type="button" style="margin-top: 16px; margin-bottom: 16px;" onclick="sendMessage()">Update flaps</button>
   <div class="flex-column">
-    <div style="color: #fff;">Messages sent</div>
     <div style="color: #fff;" id="messages-sent" class="flex-column">
     </div>
   </div>
@@ -184,6 +219,12 @@
         dataType: "json",
         success: function (response) {
           console.log("Message sent successfully:", response);
+          if (response == null) {
+            $('.song').html("Song: N/A")
+            $('.artist').html("Artist: N/A")
+            $('.time-left').html("Time Left: N/A")
+            return
+          }
           $('.song').html(response.Song)
           $('.artist').html(response.Artist)
           $('.time-left').html(response.TimeLeft)
@@ -208,9 +249,13 @@
       });
     }
 
+    function isMobile() {
+      return /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+
     const params = new URLSearchParams(window.location.search)
     if (params.get('message') === 'logged_in') {
-      $('.logged-in').show()
+      $('body').toggleClass("logged-in", true);
     }
   </script>
 
@@ -252,10 +297,6 @@
       }
     });
 
-    function isMobile() {
-      return /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    }
-
 
     const setInput = (i, value) => {
       flapInputs[i].value = value;
@@ -270,7 +311,6 @@
       })
 
       flapInputs[i].addEventListener('input', (event) => {
-        log("Input event triggered for flap " + i + ": " + event.target.value);
         if (event.target.value.length >= 1 && i != 23) {
           flapInputs[i + 1].focus();
           if (flapInputs[i + 1].value.length >= 1) {
@@ -287,7 +327,6 @@
       if (isMobile) {
         flapInputs[i].onkeydown = (event) => {
           const pressed = event.key
-          log("Keydown event triggered for flap " + i + ": " + event.key);
           if (pressed == "Backspace") {
             flapInputs[i].value = ''
             if (i != 0) {
@@ -370,6 +409,20 @@
         }
       });
     }
+
+    $.ajax({
+      type: "GET",
+      url: "/api/logged-in", // Replace with your actual endpoint URL
+      contentType: "application/json; charset=utf-8",
+      dataType: "json",
+      success: function (response) {
+        $('body').toggleClass("logged-in", true);
+        console.log("Is logged in response:", response);
+      },
+      error: function (error) {
+        console.error("Error getting message:", error);
+      }
+    });
   </script>
 </body>
 

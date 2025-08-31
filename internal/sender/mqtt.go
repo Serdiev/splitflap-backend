@@ -65,7 +65,7 @@ func setupReadHandler(client MQTT.Client, topic string) {
 	}
 
 	if token := client.Subscribe(topic, 0, messageHandler); token.Wait() && token.Error() != nil {
-		logger.Info().Msgf("Failed to subscribe to MQTT topic:", token.Error())
+		logger.Info().Msgf("Failed to subscribe to MQTT topic: %s", token.Error())
 		os.Exit(1)
 	}
 }

@@ -10,19 +10,17 @@ import (
 )
 
 type Configuration struct {
-	MQTT              MQTTConfig
-	Spotify           SpotifyConfig
-	Splitflap         SplitFlapConfig
-	General           General
-	LcdConfigurations []LcdConfiguration
+	MQTT      MQTTConfig
+	Spotify   SpotifyConfig
+	Splitflap SplitFlapConfig
+	General   General
 }
 
 type General struct {
-	TimeZone                    string
-	CertFile                    string
-	KeyFile                     string
-	IsLocal                     bool
-	ExternalLcdDisplayIpAddress string
+	TimeZone string
+	CertFile string
+	KeyFile  string
+	IsLocal  bool
 }
 
 type MQTTConfig struct {
@@ -31,7 +29,7 @@ type MQTTConfig struct {
 	Topic     string
 }
 
-type LcdConfiguration struct {
+type SpotifyAccountConfig struct {
 	Id           string
 	ClientId     string
 	ClientSecret string
@@ -46,11 +44,10 @@ type SplitFlapConfig struct {
 }
 
 type SpotifyConfig struct {
-	BaseUrl      string
-	TokenUrl     string
-	ClientId     string
-	ClientSecret string
-	RedirectUrl  string
+	BaseUrl               string
+	TokenUrl              string
+	RedirectUrl           string
+	SpotifyConfigurations map[string]SpotifyAccountConfig
 }
 
 func (c *Configuration) GetRowLength() int {
@@ -64,7 +61,7 @@ func New() Configuration {
 		return *cfg
 	}
 
-	godotenv.Load(".env")
+	_ = godotenv.Load(".env")
 
 	count, err := strconv.Atoi(GetVar("SPLITFLAP_MODULE_COUNT", "24"))
 	if err != nil {
@@ -73,11 +70,10 @@ func New() Configuration {
 
 	cfg = &Configuration{
 		Spotify: SpotifyConfig{
-			BaseUrl:      GetVar("SPOTIFY_URL", ""),
-			TokenUrl:     GetVar("SPOTIFY_TOKEN_URL", ""),
-			ClientId:     GetVar("SPOTIFY_CLIENT_ID", ""),
-			ClientSecret: GetVar("SPOTIFY_CLIENT_SECRET", ""),
-			RedirectUrl:  GetVar("SPOTIFY_REDIRECT_URL", ""),
+			BaseUrl:               GetVar("SPOTIFY_URL", ""),
+			TokenUrl:              GetVar("SPOTIFY_TOKEN_URL", ""),
+			RedirectUrl:           GetVar("SPOTIFY_REDIRECT_URL", ""),
+			SpotifyConfigurations: map[string]SpotifyAccountConfig{},
 		},
 		Splitflap: SplitFlapConfig{
 			ModuleCount:         count,
@@ -87,32 +83,31 @@ func New() Configuration {
 			AlphabetESP32Order:  GetVar("ALPHABET_ESP32_ORDER", " abcdefghijklmnopqrstuvwxyz0123456789.,'"),
 		},
 		General: General{
-			TimeZone:                    GetVar("TIMEZONE", "Europe/Stockholm"),
-			CertFile:                    GetVar("LETSENCRYPT_CERTFILE", ""),
-			KeyFile:                     GetVar("LETSENCRYPT_KEYFILE", ""),
-			IsLocal:                     GetVar("IS_LOCAL", "f") == "TRUE",
-			ExternalLcdDisplayIpAddress: GetVar("EXTERNAL_LCD_DISPLAY_IP", ""),
+			TimeZone: GetVar("TIMEZONE", "Europe/Stockholm"),
+			CertFile: GetVar("LETSENCRYPT_CERTFILE", ""),
+			KeyFile:  GetVar("LETSENCRYPT_KEYFILE", ""),
+			IsLocal:  GetVar("IS_LOCAL", "f") == "TRUE",
 		},
-		LcdConfigurations: []LcdConfiguration{},
 	}
 
-	lcdClientIds := GetVar("LCD_CLIENT_IDS", "")
-	lcdSpotifyClientIds := GetVar("LCD_SPOTIFY_CLIENT_IDS", "")
-	lcdSpotifyClientSecrets := GetVar("LCD_SPOTIFY_CLIENT_SECRETS", "")
-	if lcdSpotifyClientIds != "" && lcdSpotifyClientSecrets != "" {
-		ids := strings.Split(lcdClientIds, ",")
-		clientIds := strings.Split(lcdSpotifyClientIds, ",")
-		secrets := strings.Split(lcdSpotifyClientSecrets, ",")
-		if len(ids) != len(clientIds) && len(clientIds) != len(secrets) {
+	spotifyOwnerIds := GetVar("SPOTIFY_OWNER_IDS", "")
+	spotifyClientIds := GetVar("SPOTIFY_CLIENT_IDS", "")
+	spotifyClientSecrets := GetVar("SPOTIFY_CLIENT_SECRETS", "")
+
+	if spotifyClientIds != "" && spotifyClientSecrets != "" {
+		ownerIds := strings.Split(spotifyOwnerIds, ",")
+		clientIds := strings.Split(spotifyClientIds, ",")
+		secrets := strings.Split(spotifyClientSecrets, ",")
+		if len(ownerIds) != len(clientIds) && len(clientIds) != len(secrets) {
 			panic("LCD mismatch between number of Ids, ClientIds, Secrets")
 		}
 
-		for i := 0; i < len(ids); i++ {
-			cfg.LcdConfigurations = append(cfg.LcdConfigurations, LcdConfiguration{
-				Id:           fmt.Sprintf("lcd-%d", i+1),
-				ClientId:     ids[i],
+		for i := 0; i < len(ownerIds); i++ {
+			cfg.Spotify.SpotifyConfigurations[ownerIds[i]] = SpotifyAccountConfig{
+				Id:           ownerIds[i],
+				ClientId:     clientIds[i],
 				ClientSecret: secrets[i],
-			})
+			}
 		}
 	}
 
@@ -128,7 +123,7 @@ func New() Configuration {
 func GetVar(str string, fallback string) string {
 	v := os.Getenv(str)
 	if v == "" {
-		fmt.Println(fmt.Sprintf("missing env var: %s", str))
+		fmt.Printf("missing env var: %s\n", str)
 		return fallback
 	}
 

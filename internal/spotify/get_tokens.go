@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	config "splitflap-backend/configs"
 	"splitflap-backend/internal/logger"
 	"splitflap-backend/pkg/fluent"
 	"sync"
@@ -13,16 +14,18 @@ import (
 	"golang.org/x/oauth2"
 )
 
-func CreateSpotifyTokenSource(token oauth2.Token) SpotifyTokenSource {
+func CreateSpotifyTokenSource(token oauth2.Token, spotifyConfig config.SpotifyAccountConfig) SpotifyTokenSource {
 	return SpotifyTokenSource{
-		mutex: sync.Mutex{},
-		token: &token,
+		mutex:         sync.Mutex{},
+		token:         &token,
+		spotifyConfig: spotifyConfig,
 	}
 }
 
 type SpotifyTokenSource struct {
-	mutex sync.Mutex
-	token *oauth2.Token
+	mutex         sync.Mutex
+	token         *oauth2.Token
+	spotifyConfig config.SpotifyAccountConfig
 }
 
 func (sts *SpotifyTokenSource) Token() (*oauth2.Token, error) {
@@ -33,7 +36,7 @@ func (sts *SpotifyTokenSource) Token() (*oauth2.Token, error) {
 		return sts.token, nil
 	}
 
-	newToken := GetRefreshedToken(sts.token.RefreshToken)
+	newToken := sts.GetRefreshedToken(sts.token.RefreshToken)
 	if newToken == nil {
 		return nil, errors.New("failed to get token")
 	}
@@ -50,8 +53,10 @@ func GetInitialAccessToken(deviceId string, code string) *oauth2.Token {
 
 	token := oauth2.Token{}
 
+	spotifyConfig := cfg.Spotify.SpotifyConfigurations[deviceId]
+
 	err := fluent.Post(cfg.Spotify.TokenUrl, []byte(formData.Encode())).
-		WithClientCredentials(cfg.Spotify.ClientId, cfg.Spotify.ClientSecret).
+		WithClientCredentials(spotifyConfig.ClientId, spotifyConfig.ClientSecret).
 		WithContentType("application/x-www-form-urlencoded").
 		OnSuccess(func(bytes []byte) error {
 			fmt.Println("res", string(bytes))
@@ -76,16 +81,16 @@ func GetInitialAccessToken(deviceId string, code string) *oauth2.Token {
 	return &token
 }
 
-func GetRefreshedToken(refreshToken string) *oauth2.Token {
+func (sts *SpotifyTokenSource) GetRefreshedToken(refreshToken string) *oauth2.Token {
 	formData := url.Values{}
-	formData.Set("client_id", cfg.Spotify.ClientId)
+	formData.Set("client_id", sts.spotifyConfig.ClientId)
 	formData.Set("refresh_token", refreshToken)
 	formData.Set("grant_type", "refresh_token")
 
 	var token *oauth2.Token
 	err := fluent.Post(cfg.Spotify.TokenUrl, []byte(formData.Encode())).
 		WithContentType("application/x-www-form-urlencoded").
-		WithClientCredentials(cfg.Spotify.ClientId, cfg.Spotify.ClientSecret).
+		WithClientCredentials(sts.spotifyConfig.ClientId, sts.spotifyConfig.ClientSecret).
 		OnSuccess(func(bytes []byte) error {
 			innerToken, innerErr := fluent.Deserialize[oauth2.Token](bytes)
 			token = innerToken
