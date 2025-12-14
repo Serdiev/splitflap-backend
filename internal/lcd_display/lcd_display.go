@@ -29,14 +29,14 @@ func (d *Esp32LcdDisplay) SetImage(img *utils.Image) {
 }
 
 func (d *Esp32LcdDisplay) HandleIsPlaying(playing *models.SpotifyIsPlaying) {
-	d.isPlaying = playing
-
-	if d.isPlaying == nil {
+	if playing == nil {
 		d.latestImage = nil
 		return
 	}
 
-	if d.isPlaying.Image64PixelUrl != playing.Image64PixelUrl {
+	if d.latestImage == nil || d.isPlaying.Image64PixelUrl != playing.Image64PixelUrl {
 		d.latestImage = utils.ConvertUrlToImage(playing.Image64PixelUrl)
 	}
+
+	d.isPlaying = playing
 }
