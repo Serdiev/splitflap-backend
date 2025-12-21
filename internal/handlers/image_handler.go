@@ -14,7 +14,7 @@ type GetImageRequest struct {
 }
 
 type GetImageResponse struct {
-	Hash       string `json:"image_url"`
+	Hash       string `json:"hash"`
 	ImageBytes []byte `json:"data"`
 }
 
