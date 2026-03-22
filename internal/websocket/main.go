@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"splitflap-backend/internal/logger"
 	"sync"
 
 	"github.com/gin-gonic/gin"
@@ -34,12 +33,44 @@ func NewWebsocket() *WebSocket {
 	}
 }
 
-func (w *WebSocket) BroadcastMessage(msg []byte) {
+func (w *WebSocket) BroadcastMessageAsText(msg []byte) {
+	fmt.Println("braoadcasting text message")
+	fmt.Println(len(msg))
+	w.broadcastMessage(msg, 1)
+}
+
+func (w *WebSocket) BroadcastMessageAsBinary(msg []byte) {
+	fmt.Println("braoadcasting binary message")
+	fmt.Println(len(msg))
+	w.broadcastMessage(msg, 2)
+}
+
+func (w *WebSocket) broadcastMessage(msg []byte, msgType int) {
+	// 42 size of the json to webpage splitflap current text message
+	// if len(msg) != 42 {
+	// 	fmt.Println("broadcasting", len(msg))
+
+	// 	// print only first 25 bytes (or all if shorter)
+	// 	limit := 1000
+	// 	if len(msg) < limit {
+	// 		limit = len(msg)
+	// 	}
+
+	// 	fmt.Print("First bytes: [")
+	// 	for i := 0; i < limit; i++ {
+	// 		if i > 0 {
+	// 			fmt.Print(" ")
+	// 		}
+	// 		fmt.Print(msg[i])
+	// 	}
+	// 	fmt.Println("]")
+	// }
+
 	w.mutex.Lock()
 	defer w.mutex.Unlock()
 
 	for client := range w.clients {
-		err := client.WriteMessage(1, msg)
+		err := client.WriteMessage(msgType, msg)
 		if err != nil {
 			log.Printf("Error sending message to client: %v", err)
 			client.Close()
@@ -63,32 +94,29 @@ func (w *WebSocket) HandleWebSocket(c *gin.Context) {
 	w.mutex.Unlock()
 
 	for {
-		var msg any
-		err := conn.ReadJSON(&msg)
+		_, msg, err := conn.ReadMessage()
 		if err != nil {
-			log.Printf("Error: %v", err)
+			fmt.Printf("Error: %v", err)
 			w.mutex.Lock()
 			delete(w.clients, conn)
 			w.mutex.Unlock()
 			break
 		}
 
-		bytes, err := json.Marshal(msg)
-		if err != nil {
-			return
-		}
+		text := string(msg) // convert bytes to string
+		fmt.Printf("Received: %s", text)
+		// bytes, err := json.Marshal()
+		// if err != nil {
+		// 	return
+		// }
 
-		if w.HandleNewMessage != nil {
-			(*w.HandleNewMessage)(bytes)
-		} else {
-			logger.Error().Msg("Do not have any handler for incoming websocket messages")
-		}
+		// if w.HandleNewMessage != nil {
+		// 	(*w.HandleNewMessage)(bytes)
+		// }
+		// else {
+		// 	logger.Error().Msg("Do not have any handler for incoming websocket messages")
+		// }
 	}
-}
-
-func ParseMessage[T any](msg []byte) (res *T, err error) {
-	err = json.Unmarshal(msg, &res)
-	return res, err
 }
 
 func ToBytes(msg any) []byte {

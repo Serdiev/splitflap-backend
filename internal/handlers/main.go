@@ -23,7 +23,7 @@ func CreateService(c context.Context) *Application {
 		Ws:                           *ws.NewWebsocket(),
 		LcdDisplays:                  map[SpotifyAccountId]*lcd_display.Esp32LcdDisplay{},
 		SpotifyClients:               map[SpotifyAccountId]*spotify.SpotifyClient{},
-		SpotifyShouldUpdateSplitFlap: true,
+		SpotifyShouldUpdateSplitFlap: false,
 	}
 
 	a.Sender = GetSender(a.HandleSplitflapState)

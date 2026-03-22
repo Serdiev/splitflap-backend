@@ -72,7 +72,7 @@ func (sc *SpotifyClient) StartLoop() {
 
 		for {
 			if !sc.isFetching {
-				fmt.Println("Exiting loop")
+				fmt.Println("Exiting spotify fetch loop")
 				return
 			}
 
@@ -122,13 +122,17 @@ func (sc *SpotifyClient) GetCurrentlyPlaying() (*models.SpotifyIsPlaying, error)
 			return nil
 		}).
 		OnError(func(payload []byte) error {
-			return fmt.Errorf("failed to get the current song. err:%s", string(payload))
+			return fmt.Errorf("failed to get the current song. err: %s", string(payload))
 		}).
 		Execute()
 
-	if err != nil || spotifyResp == nil {
-		logger.Error().Err(err).Msg("failed to get the current song")
+	if err != nil {
+		logger.Error().Err(err).Msgf("failed to get the current song. err: %s", err.Error())
 		return nil, errors.New("failed to get the current song")
+	}
+
+	if spotifyResp == nil {
+		return nil, errors.New("no response")
 	}
 
 	if spotifyResp.IsPlaying {
@@ -166,6 +170,7 @@ func mapToDto(resp *SpotifyResponse) *models.SpotifyIsPlaying {
 		}
 	}
 
+	fmt.Println(resp.Item.Artists[0].Name)
 	return &models.SpotifyIsPlaying{
 		Song:            utils.ReplaceDisallowedLetters(resp.Item.Name),
 		Artist:          utils.ReplaceDisallowedLetters(resp.Item.Artists[0].Name),

@@ -33,13 +33,14 @@ func main() {
 
 	go statemachine.Initiate(app)
 
-	server := startServer(r)
+	httpServer, httpsServer := startServer(r)
 
-	handleGracefulShutdown(server)
+	handleGracefulShutdown(httpServer)
+	handleGracefulShutdown(httpsServer)
 	log.Info().Msg("Exiting main")
 }
 
-func startServer(r *gin.Engine) *http.Server {
+func startServer(r *gin.Engine) (*http.Server, *http.Server) {
 	if cfg.General.IsLocal {
 		err := r.Run(":443")
 		if err != nil {
@@ -47,22 +48,34 @@ func startServer(r *gin.Engine) *http.Server {
 		}
 
 		log.Info().Msg("Starting local server on 8080")
-		return nil
+		return nil, nil
 	}
 
-	server := &http.Server{
+	httpsServer := &http.Server{
 		Addr:    ":https", // Listen on HTTPS port 443
 		Handler: r,
 	}
 
 	go func() {
-		err := server.ListenAndServeTLS(cfg.General.CertFile, cfg.General.KeyFile)
+		err := httpsServer.ListenAndServeTLS(cfg.General.CertFile, cfg.General.KeyFile)
 		if err != nil && err != http.ErrServerClosed {
 			logger.Error().Msgf("ListenAndServeTLS: %s", err.Error())
 		}
 	}()
 
-	return server
+	httpServer := &http.Server{
+		Addr:    ":8080",
+		Handler: r,
+	}
+
+	go func() {
+		err := httpServer.ListenAndServe()
+		if err != nil && err != http.ErrServerClosed {
+			log.Error().Msgf("HTTP ListenAndServe: %s", err.Error())
+		}
+	}()
+
+	return httpServer, httpsServer
 }
 
 func handleGracefulShutdown(server *http.Server) {

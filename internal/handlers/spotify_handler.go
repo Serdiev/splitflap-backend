@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	config "splitflap-backend/configs"
-	"splitflap-backend/internal/lcd_display"
 	"splitflap-backend/internal/logger"
 	"splitflap-backend/internal/models"
 	"splitflap-backend/internal/spotify"
@@ -121,18 +120,22 @@ func (a *Application) handleSpotifyClient(spotifyAccountId SpotifyAccountId, cli
 	// Save new client
 	a.SpotifyClients[spotifyAccountId] = client
 
-	// Delete old lcd display
-	delete(a.LcdDisplays, spotifyAccountId)
+	// // Delete old lcd display
+	// delete(a.LcdDisplays, spotifyAccountId)
 
-	// Create new lcd display
-	newLcd := lcd_display.NewLcdDisplay(string(spotifyAccountId))
-	a.LcdDisplays[spotifyAccountId] = newLcd
+	// // Create new lcd display
+	// newLcd := lcd_display.NewLcdDisplay(string(spotifyAccountId))
+	// a.LcdDisplays[spotifyAccountId] = newLcd
 
-	client.RegisterHandler("update-lcd-image", newLcd.HandleIsPlaying)
+	// client.RegisterHandler("update-lcd-image", newLcd.HandleIsPlaying)
+
 	if spotifyAccountId == MainSpotifyAccountId {
 		fmt.Println("Adding splitflap handler", spotifyAccountId)
-		client.RegisterHandler("update-splitflap", a.HandleIsPlaying)
+		client.RegisterHandler("update-splitflap", a.SendIsPlayingTextToSplitflap)
 	}
 
 	client.StartLoop()
+}
+
+func (a *Application) BroadcastSpotifyImage(playing *models.SpotifyIsPlaying) {
 }

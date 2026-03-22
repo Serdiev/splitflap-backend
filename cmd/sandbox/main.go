@@ -13,19 +13,6 @@ import (
 )
 
 func main() {
-
-	fmt.Println("boop")
-
-	// svc := handlers.CreateService(context.Background())
-
-	// img := utils.ConvertUrlToImage("https://fakeimg.pl/64x64")
-
-	// fmt.Println("send img")
-	// if err != nil {
-	// 	fmt.Println(err)
-	// } else {
-	// 	fmt.Println("Image sent")
-	// }
 }
 
 func main2() {

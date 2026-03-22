@@ -1,40 +1,25 @@
 package handlers
 
 import (
-	"image"
-	"image/color"
 	"net/http"
+	"slices"
 	"splitflap-backend/internal/utils"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
-func ConvertCustomImageToRGBA(customImage utils.Image) *image.RGBA {
-	height := len(customImage.Image)
-	width := len(customImage.Image[0])
-
-	// Create an RGBA image
-	img := image.NewRGBA(image.Rect(0, 0, width, height))
-
-	// Fill the image with your custom RGB data
-	for y := 0; y < height; y++ {
-		for x := 0; x < width; x++ {
-			rgb := customImage.Image[y][x]
-			img.Set(x, y, color.RGBA{rgb.R, rgb.G, rgb.B, 255}) // Set pixel with full opacity
-		}
-	}
-
-	return img
-}
-
 func SetupRouting(a *Application) *gin.Engine {
 
 	r := gin.Default()
+	validOrigins := []string{"http://fdevc.com", "https://fdevc.com", "https://github.com/gilmaimon/TinyWebsockets"}
 	config := cors.Config{
-		AllowOrigins: []string{"https://fdev.store", "https://fdevc.store"},
-		AllowMethods: []string{http.MethodGet, http.MethodPost},
+		// AllowOrigins: validOrigins,
+		AllowMethods: []string{http.MethodGet, http.MethodPost, http.MethodDelete},
 		AllowHeaders: []string{"*"},
+		AllowOriginFunc: func(origin string) bool {
+			return slices.Contains(validOrigins, origin)
+		},
 	}
 
 	r.Use(cors.New(config))
@@ -56,11 +41,13 @@ func SetupRouting(a *Application) *gin.Engine {
 		api.GET("/actions", a.GetActions)
 
 		api.GET("/ws", a.Ws.HandleWebSocket)
+		api.GET("/ws-img/:id", utils.ValidatePath(a.LcdWebsocketHandler))
 
 		api.POST("/ip", utils.ValidateRequest(a.UpdateESP32IPAddress))
 
 		api.GET("/image/:id/:hash", utils.ValidatePath(a.FetchImage))
 		api.POST("/image/:id", utils.ValidateRequest(a.SetImage))
+		api.DELETE("/image/:id", utils.ValidatePath(a.DeleteImage))
 	}
 
 	// host webpage to interact

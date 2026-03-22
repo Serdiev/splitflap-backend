@@ -26,12 +26,14 @@
   <h2>Webcam Capture (64x64)</h2>
   <video id="video" autoplay></video>
   <button id="capture">Take Picture</button>
+  <button id="clear">Reset</button>
   <br>
   <canvas id="canvas" width="64" height="64" style="display:none;"></canvas>
   <canvas id="preview" width="64" height="64"></canvas>
   <pre id="output"></pre>
 
   <script>
+    const id = 'fredriks-spotify-account';
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas'); // hidden working canvas
     const ctx = canvas.getContext('2d');
@@ -44,9 +46,44 @@
       .then(stream => { video.srcObject = stream; })
       .catch(err => console.error("Error accessing webcam:", err));
 
+    document.getElementById('clear').addEventListener('click', () => {
+      console.log("clearing");
+      fetch('/api/image/' + encodeURIComponent(id), {
+        method: 'DELETE',
+      })
+        .then(async (res) => {
+          if (res.status === 204) {
+            output.textContent = 'Cleared successfully (204 No Content)';
+          } else {
+            const txt = await res.text();
+            output.textContent = 'Failed to clear image: ' + res.status + '\n' + txt;
+          }
+        })
+        .catch(err => {
+          output.textContent = 'Clear error: ' + err;
+        });
+    });
+
     document.getElementById('capture').addEventListener('click', () => {
-      // Draw video frame into 64x64 canvas
-      ctx.drawImage(video, 0, 0, 64, 64);
+      // Ensure video metadata is available
+      const vw = video.videoWidth;
+      const vh = video.videoHeight;
+      if (!vw || !vh) {
+        output.textContent = 'Video not ready. Please try again.';
+        return;
+      }
+
+      // Center-crop to a square to preserve aspect ratio and avoid distortion
+      const sSide = Math.min(vw, vh);
+      const sx = Math.floor((vw - sSide) / 2);
+      const sy = Math.floor((vh - sSide) / 2);
+
+      // Disable smoothing for a crisp 64x64 pixel result
+      ctx.imageSmoothingEnabled = false;
+      previewCtx.imageSmoothingEnabled = false;
+
+      // Draw the cropped square scaled down to 64x64
+      ctx.drawImage(video, sx, sy, sSide, sSide, 0, 0, 64, 64);
 
       // Copy to preview canvas (so user sees the scaled-down result)
       previewCtx.drawImage(canvas, 0, 0);
@@ -63,8 +100,38 @@
         pixels.push([r, g, b]);
       }
 
-      // Display result
-      output.textContent = JSON.stringify(pixels, null, 2);
+      // Convert flat pixels array into 64x64 rows of {r,g,b} objects
+      const imageDataRows = [];
+      for (let y = 0; y < 64; y++) {
+        const row = [];
+        for (let x = 0; x < 64; x++) {
+          const idx = (y * 64 + x);
+          const p = pixels[idx];
+          row.push({ r: p[0], g: p[1], b: p[2] });
+        }
+        imageDataRows.push(row);
+      }
+
+      // Display result for debugging
+      output.textContent = JSON.stringify(imageDataRows, null, 2);
+
+      // POST to server
+      fetch('/api/image/' + encodeURIComponent(id), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: imageDataRows })
+      })
+        .then(async (res) => {
+          if (res.status === 204) {
+            output.textContent = 'Upload successful (204 No Content)';
+          } else {
+            const txt = await res.text();
+            output.textContent = 'Upload failed: ' + res.status + '\n' + txt;
+          }
+        })
+        .catch(err => {
+          output.textContent = 'Upload error: ' + err;
+        });
     });
   </script>
 </body>

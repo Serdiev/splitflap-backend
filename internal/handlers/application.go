@@ -83,10 +83,10 @@ func (a *Application) HandleSplitflapState(state *gen.SplitflapState) {
 
 	a.CurrentSplitflapText = newText
 
-	a.Ws.BroadcastMessage(ws.ToBytes(CurrentTextResponse{CurrentText: a.CurrentSplitflapText}))
+	a.Ws.BroadcastMessageAsText(ws.ToBytes(CurrentTextResponse{CurrentText: a.CurrentSplitflapText}))
 }
 
-func (a *Application) HandleIsPlaying(playing *models.SpotifyIsPlaying) {
+func (a *Application) SendIsPlayingTextToSplitflap(playing *models.SpotifyIsPlaying) {
 	if (a.isState(Idle) || a.isState(Spotify)) && playing != nil {
 		if !a.SpotifyShouldUpdateSplitFlap {
 			return

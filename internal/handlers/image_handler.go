@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"splitflap-backend/internal/utils"
 
@@ -71,7 +70,20 @@ func (a *Application) SetImage(ctx *gin.Context, request SetImageRequest) {
 	img := utils.NewImage(request.Image)
 	lcd.SetImage(img)
 
-	fmt.Println("img hash", img.Hash)
+	ctx.Status(http.StatusNoContent)
+}
 
+type DeleteImageRequest struct {
+	Id SpotifyAccountId `json:"id"`
+}
+
+func (a *Application) DeleteImage(ctx *gin.Context, request DeleteImageRequest) {
+	lcd, exists := a.LcdDisplays[request.Id]
+	if !exists {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "LCD client not found. You must connect a ESP32."})
+		return
+	}
+
+	lcd.SetImage(nil)
 	ctx.Status(http.StatusNoContent)
 }
