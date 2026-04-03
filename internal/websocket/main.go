@@ -34,14 +34,10 @@ func NewWebsocket() *WebSocket {
 }
 
 func (w *WebSocket) BroadcastMessageAsText(msg []byte) {
-	fmt.Println("braoadcasting text message")
-	fmt.Println(len(msg))
 	w.broadcastMessage(msg, 1)
 }
 
 func (w *WebSocket) BroadcastMessageAsBinary(msg []byte) {
-	fmt.Println("braoadcasting binary message")
-	fmt.Println(len(msg))
 	w.broadcastMessage(msg, 2)
 }
 

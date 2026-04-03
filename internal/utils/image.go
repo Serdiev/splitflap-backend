@@ -66,20 +66,58 @@ func EmptyImage() *Image {
 }
 
 // Constructs a byte array [width, height, R, G, B, R, G, B, ...]
+// Always outputs a 64x64 image, padded with black if smaller.
+// Returns nil if the source image is larger than 64x64.
 func (img *Image) ToBytes() ([]byte, error) {
-	imgBytes := []uint8{}
+	const targetWidth = 64
+	const targetHeight = 64
 
-	height := uint8(len(img.Image))
-	width := uint8(len(img.Image[0])) // Assume non-empty rows
+	// Basic validation
+	if len(img.Image) == 0 || len(img.Image[0]) == 0 {
+		return nil, fmt.Errorf("image is empty")
+	}
 
-	imgBytes = append(imgBytes, width)
-	imgBytes = append(imgBytes, height)
+	srcHeight := len(img.Image)
+	srcWidth := len(img.Image[0])
 
-	for y := uint8(0); y < height; y++ {
-		for x := uint8(0); x < width; x++ {
-			imgBytes = append(imgBytes, img.Image[y][x].R)
-			imgBytes = append(imgBytes, img.Image[y][x].G)
-			imgBytes = append(imgBytes, img.Image[y][x].B)
+	// Ensure all rows are the same width
+	for y := range img.Image {
+		if len(img.Image[y]) != srcWidth {
+			return nil, fmt.Errorf("image rows have inconsistent widths")
+		}
+	}
+
+	// Reject images larger than 64x64
+	if srcWidth > targetWidth || srcHeight > targetHeight {
+		return nil, fmt.Errorf("image too large: got %dx%d, max is 64x64", srcWidth, srcHeight)
+	}
+
+	// Calculate offsets to center the image
+	offsetX := (targetWidth - srcWidth) / 2
+	offsetY := (targetHeight - srcHeight) / 2
+
+	// Preallocate exact size:
+	// 2 bytes for width/height + (64 * 64 * 3) for RGB data
+	imgBytes := make([]uint8, 0, 2+(targetWidth*targetHeight*3))
+
+	// Output dimensions are always 64x64
+	imgBytes = append(imgBytes, uint8(targetWidth))
+	imgBytes = append(imgBytes, uint8(targetHeight))
+
+	// Build 64x64 output
+	for y := 0; y < targetHeight; y++ {
+		for x := 0; x < targetWidth; x++ {
+			srcX := x - offsetX
+			srcY := y - offsetY
+
+			// If inside source image bounds, use source pixel
+			if srcX >= 0 && srcX < srcWidth && srcY >= 0 && srcY < srcHeight {
+				pixel := img.Image[srcY][srcX]
+				imgBytes = append(imgBytes, pixel.R, pixel.G, pixel.B)
+			} else {
+				// Otherwise pad with black
+				imgBytes = append(imgBytes, 0, 0, 0)
+			}
 		}
 	}
 

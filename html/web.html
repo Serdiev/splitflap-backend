@@ -4,156 +4,108 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title></title>
+  <title>SPLITFLAP</title>
   <style>
-    body {
-      font-family: 'Arial', sans-serif;
-      background-color: #222222;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
+    :root {
+      --bb-bg: #000000;
+      --bb-orange: #ff9900;
+      --bb-orange-dim: #995500;
+      --bb-gray: #333333;
+      --bb-border: #444444;
+      --bb-text: #ffffff;
+      --bb-text-dim: #888888;
     }
 
-    header {
-      display: flex;
-      gap: 2px;
-    }
-
-    header a {
-      color: white;
-    }
-
-    .currently-playing {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background-color: #444;
-      padding: 10px;
-      border-radius: 5px;
-      margin-top: 20px;
-      margin-bottom: 20px;
-    }
-
-    .currently-playing div {
-      color: #FFF;
-    }
-
-    .logged-in {
-      display: flex;
-    }
-
-    button {
-      border-radius: 0;
-    }
-
-    button:hover {
-      background: #444;
-      color: #000
-    }
-
-    h2 {
-      text-align: center;
-      color: #FFF;
-    }
-
-    form {
-      max-width: 400px;
-      margin: 20px;
-      padding: 20px;
-      background-color: #333;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-
-    label {
-      display: block;
-      margin-bottom: 8px;
-    }
-
-    input {
-      width: 100%;
-      padding: 8px;
-      margin-bottom: 16px;
+    * {
       box-sizing: border-box;
     }
 
+    body {
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      background-color: var(--bb-bg);
+      color: var(--bb-text);
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+    }
 
-    .flex-column {
+    .terminal {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header-bar {
       display: flex;
-      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid var(--bb-orange);
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+
+    .header-title {
+      font-size: 24px;
+      color: var(--bb-orange);
+      font-weight: bold;
+      letter-spacing: 4px;
+    }
+
+    .header-status {
+      font-size: 12px;
+      color: var(--bb-orange-dim);
+    }
+
+    .header {
+      display: flex;
       gap: 10px;
+      flex-wrap: wrap;
     }
 
     button {
-      background-color: #dedede;
-      color: #000;
-      padding: 10px 20px;
-      border: none;
+      background: transparent;
+      border: 1px solid var(--bb-orange);
+      color: var(--bb-orange);
+      padding: 8px 16px;
+      font-family: inherit;
+      font-size: 12px;
       cursor: pointer;
-      transform: skew(-10deg);
-    }
-
-    button div {
-      transform: skew(10deg);
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
 
     button:hover {
-      background-color: #0056b3;
+      background: var(--bb-orange);
+      color: var(--bb-bg);
     }
 
-    .splitflap {
-      display: grid;
-      grid-template-columns: repeat(12, 1fr);
-      grid-template-rows: repeat(2, auto);
-      gap: 5px;
+    .panel {
+      border: 1px solid var(--bb-border);
+      margin-bottom: 15px;
+      padding: 15px;
     }
 
-    .flap {
-      position: relative;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      width: 5vw;
-      height: 0;
-      border: 2px solid #555;
-      border-radius: 5px;
-      background: #000;
-      color: #FFF;
-      font-size: 4vw;
-      font-weight: bold;
-      text-align: center;
-      padding: 0;
-      padding-top: 150%;
+    .panel-title {
+      color: var(--bb-orange);
+      font-size: 11px;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid var(--bb-border);
     }
 
-    .inner {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      border: none;
-      background: none;
-      color: #FFF;
-      font-size: 4vw;
-      font-weight: bold;
-      text-align: center;
-      padding: 0;
-      margin: 0;
-    }
-
-    .check-currently-playing,
-    .toggle-active {
+    .currently-playing {
       display: none;
+      gap: 30px;
+      font-size: 14px;
     }
 
-    .logged-in .fredrik-spotify-login {
-      display: none;
+    .currently-playing div {
+      color: var(--bb-text);
+    }
+
+    .currently-playing span {
+      color: var(--bb-orange-dim);
+      margin-right: 8px;
     }
 
     .logged-in .currently-playing,
@@ -162,50 +114,123 @@
       display: flex;
     }
 
+    .logged-in .fredrik-spotify-login {
+      display: none;
+    }
+
+    .splitflap {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 3px;
+    }
+
+    .flap {
+      position: relative;
+      aspect-ratio: 0.618;
+      border: 1px solid var(--bb-border);
+      background: var(--bb-bg);
+    }
+
+    .inner {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      border: none;
+      color: var(--bb-orange);
+      font-family: inherit;
+      font-size: clamp(24px, 6vw, 72px);
+      font-weight: bold;
+      text-align: center;
+      text-transform: uppercase;
+      outline: none;
+    }
+
+    .inner:focus {
+      background: var(--bb-gray);
+      color: var(--bb-orange);
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+      flex-wrap: wrap;
+    }
+
+    .log-panel {
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    #messages-sent {
+      font-size: 11px;
+      color: var(--bb-text-dim);
+    }
+
+    #messages-sent div {
+      padding: 2px 0;
+      border-bottom: 1px solid var(--bb-border);
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bb-bg);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--bb-border);
+    }
+
     a {
       text-decoration: none;
     }
   </style>
 
-  <!-- Include jQuery library -->
   <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 </head>
 
 <body>
-  <header class="header">
-    <a class="fredrik-spotify-login" href="api/login?device_id=fredriks-spotify-account">
-      <button id="spotify-login">Splitflap Spotify Login</button>
-    </a>
-    <!-- <a class="esp32-login" href="api/login?device_id=esp32">
-      <button id="spotify-login">ESP32 Spotify Login</button>
-    </a> -->
-    <a>
-      <button class="check-currently-playing" onclick="currentlyPlaying()">
-        Currently playing?
-      </button>
-    </a>
-    <a>
-      <button class="toggle-active" onclick="toggleActive()">
-        Toggle Spotify
-      </button>
-    </a>
-  </header>
+  <div class="terminal">
+    <div class="header-bar">
+      <div class="header-title">SPLITFLAP</div>
+      <div class="header-status">CONNECTED</div>
+    </div>
 
-  <div class="currently-playing">
-    <div class="song">Song: N/A</div>
-    <div class="artist">Artist: N/A</div>
-    <div class="time-left">Time Left: N/A</div>
-  </div>
+    <div class="panel">
+      <div class="panel-title">SPOTIFY CONTROL</div>
+      <div class="header">
+        <a class="fredrik-spotify-login" href="api/login?device_id=fredriks-spotify-account">
+          <button id="spotify-login">Login</button>
+        </a>
+        <button class="check-currently-playing" onclick="currentlyPlaying()">Status</button>
+        <button class="toggle-active" onclick="toggleActive()">Toggle</button>
+      </div>
+      <div class="currently-playing" style="margin-top: 15px;">
+        <div><span>SONG:</span><span class="song">N/A</span></div>
+        <div><span>ARTIST:</span><span class="artist">N/A</span></div>
+        <div><span>TIME:</span><span class="time-left">N/A</span></div>
+      </div>
+    </div>
 
-  <!-- Flaps will be generated dynamically -->
-  <div class="splitflap">
-  </div>
+    <div class="panel">
+      <div class="panel-title">MESSAGE INPUT</div>
+      <div class="splitflap">
+      </div>
+      <div class="controls">
+        <button onclick="sendMessage()">Update Flaps</button>
+      </div>
+    </div>
 
-  <a>
-    <button type="button" style="margin-top: 16px; margin-bottom: 16px;" onclick="sendMessage()">Update flaps</button>
-  </a>
-  <div class="flex-column">
-    <div style="color: #fff;" id="messages-sent" class="flex-column">
+    <div class="panel log-panel">
+      <div class="panel-title">MESSAGE LOG</div>
+      <div id="messages-sent">
+      </div>
     </div>
   </div>
 
@@ -219,14 +244,14 @@
         success: function (response) {
           console.log("Message sent successfully:", response);
           if (response == null) {
-            $('.song').html("Song: N/A")
-            $('.artist').html("Artist: N/A")
-            $('.time-left').html("Time Left: N/A")
+            $('.song').text("N/A")
+            $('.artist').text("N/A")
+            $('.time-left').text("N/A")
             return
           }
-          $('.song').html(response.Song)
-          $('.artist').html(response.Artist)
-          $('.time-left').html(response.TimeLeft)
+          $('.song').text(response.Song)
+          $('.artist').text(response.Artist)
+          $('.time-left').text(response.TimeLeft)
         },
         error: function (error) {
           console.error("Error sending message:", error);
@@ -240,7 +265,7 @@
         url: "/api/toggle",
         success: function (response) {
           var newMessageDiv = $("<div>").text(response["isActive"]);
-          $('#messages-sent').append(newMessageDiv);
+          $('#messages-sent').prepend(newMessageDiv);
         },
         error: function (error) {
           console.error("Error sending message:", error);
@@ -261,7 +286,7 @@
   <script>
     function log(message) {
       const newMessageDiv = $("<div>").text(message);
-      $('#messages-sent').append(newMessageDiv);
+      $('#messages-sent').prepend(newMessageDiv);
     }
 
     const sf = document.querySelector('.splitflap');
@@ -282,7 +307,7 @@
 
     $.ajax({
       type: "GET",
-      url: "/api/message", // Replace with your actual endpoint URL
+      url: "/api/message",
       contentType: "application/json; charset=utf-8",
       dataType: "json",
       success: function (response) {
@@ -321,7 +346,7 @@
           if (flapInputs[i - 1].value.length >= 1) {
             flapInputs[i - 1].value = "";
           }
-       
+        
           flapInputs[i - 1].focus()
         }
       });
@@ -408,14 +433,13 @@
         },
         error: function (error) {
           console.error("Error sending message:", error);
-          // Handle the error response here
         }
       });
     }
 
     $.ajax({
       type: "GET",
-      url: "/api/logged-in", // Replace with your actual endpoint URL
+      url: "/api/logged-in",
       contentType: "application/json; charset=utf-8",
       dataType: "json",
       success: function (response) {

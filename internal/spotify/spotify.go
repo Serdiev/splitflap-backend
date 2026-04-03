@@ -89,12 +89,12 @@ func (sc *SpotifyClient) StartLoop() {
 			}
 
 			if err != nil || playing == nil {
-				backoffSeconds = int(math.Min(float64(backoffSeconds*2), 32))
+				backoffSeconds = int(math.Min(float64(backoffSeconds+1), 8))
 				time.Sleep(time.Duration(backoffSeconds) * time.Second)
 				continue
 			}
 
-			backoffSeconds = 2
+			backoffSeconds = 1
 			time.Sleep(time.Duration(backoffSeconds) * time.Second)
 		}
 	}()

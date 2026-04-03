@@ -6,7 +6,16 @@ ex:
 	nohup ./bin/golangBuild &
 
 id:
-	ps -e | grep "golangBuild" | awk '{print $1}'
+	ps -e | grep "golangBuild" | grep -v grep | awk '{print $$1}'
+
+kill:
+	@pids=$$(pgrep golangBuild); \
+	if [ -n "$$pids" ]; then \
+		echo "Killing: $$pids"; \
+		kill $$pids; \
+	else \
+		echo "No golangBuild process found"; \
+	fi
 
 # "GOOS=linux GOARCH=arm64" needed to run on raspberry pi 4. Can skip otherwise.
 run:

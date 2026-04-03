@@ -30,5 +30,6 @@ func (a *Application) LcdWebsocketHandler(ctx *gin.Context, request WebSocketReq
 	spotifyClient.RegisterHandler("update-lcd-image", lcd.HandleIsPlaying)
 
 	fmt.Println("Connecting LCD WebSocket")
+	fmt.Printf("Connecting LCD WebSocket: %d", len(a.LcdDisplays))
 	lcd.Ws.HandleWebSocket(ctx)
 }
