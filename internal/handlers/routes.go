@@ -31,8 +31,8 @@ func SetupRouting(a *Application) *gin.Engine {
 		api.GET("/callback/:id", utils.ValidateQuery(a.SpotifyLoginCallback))
 
 		api.GET("/logged-in", a.IsLoggedIn)
-		api.GET("/playing", a.GetCurrentlyPlaying)
 		api.POST("/toggle", a.ToggleSpotify)
+		api.GET("/status", a.GetStatus)
 
 		api.GET("/message", a.GetCurrentMessage)
 		api.POST("/message", utils.ValidateRequest(a.SendMessage))
@@ -62,6 +62,10 @@ func SetupRouting(a *Application) *gin.Engine {
 		c.HTML(http.StatusOK, "webcam.html", gin.H{
 			"title": "Welcome to the Home Page",
 		})
+	})
+
+	r.GET("/favicon.svg", func(c *gin.Context) {
+		c.File("html/favicon.svg")
 	})
 
 	r.GET("/_/health", func(c *gin.Context) {

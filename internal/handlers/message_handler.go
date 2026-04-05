@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/base64"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -21,4 +22,55 @@ type CurrentTextResponse struct {
 
 func (a *Application) GetCurrentMessage(c *gin.Context) {
 	c.JSON(http.StatusOK, CurrentTextResponse{CurrentText: a.CurrentSplitflapText})
+}
+
+type PlayingInfo struct {
+	Song     string `json:"song"`
+	Artist   string `json:"artist"`
+	TimeLeft string `json:"timeLeft"`
+}
+
+type StatusResponse struct {
+	CurrentText    string       `json:"currentText"`
+	IsEnabled      bool         `json:"isEnabled"`
+	IsSpotifyLogin bool         `json:"isSpotifyLogin"`
+	Image          string       `json:"image"`
+	Playing        *PlayingInfo `json:"playing"`
+}
+
+func (a *Application) GetStatus(c *gin.Context) {
+	var imageBase64 string
+	lcd, exists := a.LcdDisplays[MainSpotifyAccountId]
+	if exists {
+		img := lcd.GetImage()
+		if img != nil {
+			imgBytes, err := img.ToBytes()
+			if err == nil {
+				imageBase64 = base64.StdEncoding.EncodeToString(imgBytes)
+			}
+		}
+	}
+
+	client, spotifyExists := a.SpotifyClients[MainSpotifyAccountId]
+	isLoggedIn := false
+	var playing *PlayingInfo
+	if spotifyExists && client.IsLoggedIn() {
+		isLoggedIn = true
+		currentlyPlaying, err := client.GetCurrentlyPlaying()
+		if err == nil && currentlyPlaying != nil {
+			playing = &PlayingInfo{
+				Song:     currentlyPlaying.Song,
+				Artist:   currentlyPlaying.Artist,
+				TimeLeft: currentlyPlaying.TimeLeft,
+			}
+		}
+	}
+
+	c.JSON(http.StatusOK, StatusResponse{
+		CurrentText:    a.CurrentSplitflapText,
+		IsEnabled:      a.SpotifyShouldUpdateSplitFlap,
+		IsSpotifyLogin: isLoggedIn,
+		Image:          imageBase64,
+		Playing:        playing,
+	})
 }

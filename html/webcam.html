@@ -3,34 +3,182 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>Webcam 64x64 Capture</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Splitflap - Webcam</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=4">
   <style>
-    video,
-    canvas {
-      display: inline-block;
-      margin: 10px;
-      border: 1px solid #444;
+    :root {
+      --bb-bg: #000000;
+      --bb-orange: #ff9900;
+      --bb-orange-dim: #995500;
+      --bb-gray: #333333;
+      --bb-border: #444444;
+      --bb-text: #ffffff;
+      --bb-text-dim: #888888;
     }
 
-    pre {
-      max-height: 300px;
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      background-color: var(--bb-bg);
+      color: var(--bb-text);
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .terminal {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid var(--bb-orange);
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+
+    .header-title {
+      font-size: 24px;
+      color: var(--bb-orange);
+      font-weight: bold;
+      letter-spacing: 4px;
+    }
+
+    .header-status {
+      font-size: 12px;
+      color: var(--bb-orange-dim);
+    }
+
+    .header {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      background: transparent;
+      border: 1px solid var(--bb-orange);
+      color: var(--bb-orange);
+      padding: 8px 16px;
+      font-family: inherit;
+      font-size: 12px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    button:hover {
+      background: var(--bb-orange);
+      color: var(--bb-bg);
+    }
+
+    .panel {
+      border: 1px solid var(--bb-border);
+      margin-bottom: 15px;
+      padding: 15px;
+    }
+
+    .panel-title {
+      color: var(--bb-orange);
+      font-size: 11px;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid var(--bb-border);
+    }
+
+    .webcam-container {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
+
+    .webcam-section {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .webcam-controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    video {
+      display: block;
+      max-width: 100%;
+      border: 1px solid var(--bb-border);
+    }
+
+    canvas {
+      display: inline-block;
+      margin: 10px 0;
+      border: 1px solid var(--bb-border);
+    }
+
+    #output {
+      max-height: 200px;
       overflow: auto;
-      background: #111;
-      color: #0f0;
-      padding: 10px;
+      font-size: 11px;
+      color: var(--bb-text-dim);
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bb-bg);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--bb-border);
+    }
+
+    a {
+      text-decoration: none;
     }
   </style>
+
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 </head>
 
 <body>
-  <h2>Webcam Capture (64x64)</h2>
-  <video id="video" autoplay></video>
-  <button id="capture">Take Picture</button>
-  <button id="clear">Reset</button>
-  <br>
-  <canvas id="canvas" width="64" height="64" style="display:none;"></canvas>
-  <canvas id="preview" width="64" height="64"></canvas>
-  <pre id="output"></pre>
+  <div class="terminal">
+    <div class="header-bar">
+      <div class="header-title">SPLITFLAP / WEBCAM</div>
+      <div class="header-status">
+        <a href="/"><button>Home</button></a>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">CAPTURE</div>
+      <div class="webcam-container">
+        <div class="webcam-section">
+          <video id="video" autoplay></video>
+          <div class="webcam-controls">
+            <button id="capture">Take Picture</button>
+            <button id="clear">Reset</button>
+          </div>
+        </div>
+        <div class="webcam-section">
+          <canvas id="canvas" width="64" height="64" style="display:none;"></canvas>
+          <canvas id="preview" width="64" height="64"></canvas>
+          <pre id="output"></pre>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script>
     const id = 'fredriks-spotify-account';

@@ -4,7 +4,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SPLITFLAP</title>
+  <title>Splitflap</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=4">
   <style>
     :root {
       --bb-bg: #000000;
@@ -190,6 +191,30 @@
     a {
       text-decoration: none;
     }
+
+    .log-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    @media (max-width: 768px) {
+      .log-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .image-grid {
+      display: grid;
+      grid-template-columns: repeat(64, 1fr);
+      width: 320px;
+      gap: 0;
+      margin: 0 auto;
+    }
+
+    .image-pixel {
+      aspect-ratio: 1;
+    }
   </style>
 
   <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
@@ -199,7 +224,7 @@
   <div class="terminal">
     <div class="header-bar">
       <div class="header-title">SPLITFLAP</div>
-      <div class="header-status">CONNECTED</div>
+      <a href="webcam"><button>Webcam</button></a>
     </div>
 
     <div class="panel">
@@ -209,7 +234,6 @@
           <button id="spotify-login">Login</button>
         </a>
         <button class="check-currently-playing" onclick="currentlyPlaying()">Status</button>
-        <button class="toggle-active" onclick="toggleActive()">Toggle</button>
       </div>
       <div class="currently-playing" style="margin-top: 15px;">
         <div><span>SONG:</span><span class="song">N/A</span></div>
@@ -222,14 +246,23 @@
       <div class="panel-title">MESSAGE INPUT</div>
       <div class="splitflap">
       </div>
-      <div class="controls">
+      <div class="controls" style="justify-content: space-between;">
+        <button class="toggle-active" onclick="toggleActive()">Enable</button>
         <button onclick="sendMessage()">Update Flaps</button>
       </div>
     </div>
 
-    <div class="panel log-panel">
-      <div class="panel-title">MESSAGE LOG</div>
-      <div id="messages-sent">
+    <div class="log-grid">
+      <div class="panel log-panel">
+        <div class="panel-title">MESSAGE LOG</div>
+        <div id="messages-sent">
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">ALBUM PREVIEW</div>
+        <div class="image-grid" id="image-grid">
+        </div>
       </div>
     </div>
   </div>
@@ -238,20 +271,20 @@
     function currentlyPlaying() {
       $.ajax({
         type: "GET",
-        url: "/api/playing",
+        url: "/api/status",
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         success: function (response) {
-          console.log("Message sent successfully:", response);
-          if (response == null) {
+          console.log("Currently playing:", response);
+          if (response.playing == null) {
             $('.song').text("N/A")
             $('.artist').text("N/A")
             $('.time-left').text("N/A")
             return
           }
-          $('.song').text(response.Song)
-          $('.artist').text(response.Artist)
-          $('.time-left').text(response.TimeLeft)
+          $('.song').text(response.playing.song)
+          $('.artist').text(response.playing.artist)
+          $('.time-left').text(response.playing.timeLeft)
         },
         error: function (error) {
           console.error("Error sending message:", error);
@@ -264,13 +297,17 @@
         type: "POST",
         url: "/api/toggle",
         success: function (response) {
-          var newMessageDiv = $("<div>").text(response["isActive"]);
-          $('#messages-sent').prepend(newMessageDiv);
+          updateToggleButton(response["isActive"]);
         },
         error: function (error) {
           console.error("Error sending message:", error);
         }
       });
+    }
+
+    function updateToggleButton(isActive) {
+      const btn = document.querySelector('.toggle-active');
+      btn.textContent = isActive ? "Disable" : "Enable";
     }
 
     function isMobile() {
@@ -341,12 +378,12 @@
             flapInputs[i + 1].value = "";
           }
         } else if (i == 23) {
-            flapInputs[i].blur();
+          flapInputs[i].blur();
         } else if (i != 0 && i != 23) {
           if (flapInputs[i - 1].value.length >= 1) {
             flapInputs[i - 1].value = "";
           }
-        
+
           flapInputs[i - 1].focus()
         }
       });
@@ -365,7 +402,7 @@
 
       if (!isMobile()) {
         flapInputs[i].onkeydown = (event) => {
-              console.log("keydown")
+          console.log("keydown")
           const pressed = event.key
           if (pressed == "Backspace") {
             flapInputs[i].value = ''
@@ -406,6 +443,36 @@
       }
     };
 
+    const imageGrid = document.getElementById('image-grid');
+    for (let i = 0; i < 64 * 64; i++) {
+      const pixel = document.createElement('div');
+      pixel.className = 'image-pixel';
+      imageGrid.appendChild(pixel);
+    }
+
+    const imgSocket = new WebSocket('wss://' + window.location.host + '/api/ws-img/fredriks-spotify-account');
+    imgSocket.onmessage = function (event) {
+      if (event.data == "no-image") {
+        const pixels = document.querySelectorAll('.image-pixel');
+        pixels.forEach(pixel => {
+          pixel.style.backgroundColor = `rgb(0, 0, 0)`;
+        });
+        return;
+      }
+
+      event.data.arrayBuffer().then(function (buffer) {
+        const bytes = new Uint8Array(buffer);
+        const width = bytes[0];
+        const height = bytes[1];
+        const pixels = document.querySelectorAll('.image-pixel');
+        for (let i = 0; i < pixels.length; i++) {
+          const idx = 2 + i * 3;
+          pixels[i].style.backgroundColor = `rgb(${bytes[idx]}, ${bytes[idx + 1]}, ${bytes[idx + 2]})`;
+        }
+      });
+      currentlyPlaying();
+    };
+
     function sendMessage() {
       let message = "";
       const flaps = document.querySelectorAll('.inner');
@@ -439,15 +506,36 @@
 
     $.ajax({
       type: "GET",
-      url: "/api/logged-in",
+      url: "/api/status",
       contentType: "application/json; charset=utf-8",
       dataType: "json",
       success: function (response) {
-        $('body').toggleClass("logged-in", true);
-        console.log("Is logged in response:", response);
+        $('body').toggleClass("logged-in", response.isSpotifyLogin);
+        updateToggleButton(response.isEnabled);
+        if (response.currentText) {
+          const flaps = document.querySelectorAll('.inner');
+          for (let i = 0; i < flaps.length; i++) {
+            flaps[i].value = response.currentText[i] ? response.currentText[i].toUpperCase() : "";
+          }
+        }
+        if (response.image) {
+          const imgBytes = atob(response.image);
+          const bytes = new Uint8Array(imgBytes.length);
+          for (let i = 0; i < imgBytes.length; i++) {
+            bytes[i] = imgBytes.charCodeAt(i);
+          }
+          const width = bytes[0];
+          const height = bytes[1];
+          const pixels = document.querySelectorAll('.image-pixel');
+          for (let i = 0; i < pixels.length; i++) {
+            const idx = 2 + i * 3;
+            pixels[i].style.backgroundColor = `rgb(${bytes[idx]}, ${bytes[idx + 1]}, ${bytes[idx + 2]})`;
+          }
+        }
+        console.log("Status response:", response);
       },
       error: function (error) {
-        console.error("Error getting message:", error);
+        console.error("Error getting status:", error);
       }
     });
   </script>
