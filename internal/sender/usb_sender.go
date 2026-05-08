@@ -69,8 +69,6 @@ func (m *UsbSerialSender) matrixReplacement(newText string) {
 
 	lettersPerRun := 4
 	for i := 0; i < cfg.Splitflap.ModuleCount/lettersPerRun; i++ {
-		fmt.Println("new run:")
-		// pick 4
 		for i := 0; i < lettersPerRun; i++ {
 			randomIndex := indexesLeft[rand.Intn(len(indexesLeft))]
 			fmt.Println(randomIndex)

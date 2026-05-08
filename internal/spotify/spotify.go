@@ -170,7 +170,6 @@ func mapToDto(resp *SpotifyResponse) *models.SpotifyIsPlaying {
 		}
 	}
 
-	fmt.Println(resp.Item.Artists[0].Name)
 	return &models.SpotifyIsPlaying{
 		Song:            utils.ReplaceDisallowedLetters(resp.Item.Name),
 		Artist:          utils.ReplaceDisallowedLetters(resp.Item.Artists[0].Name),

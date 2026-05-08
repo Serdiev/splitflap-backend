@@ -2,7 +2,6 @@ package utils
 
 import (
 	"fmt"
-	"splitflap-backend/internal/models"
 	"strings"
 )
 
@@ -104,21 +103,7 @@ func ReplaceDisallowedLetters(s string) string {
 	return output
 }
 
-func getPlayingText(playing *models.SpotifyIsPlaying) string {
-	text := NewText()
-	if len(playing.Song+" - "+playing.Artist) <= cfg.GetRowLength() {
-		text.TopLeft(playing.Song + " - ")
-		text.TopRight(playing.Artist)
 
-		sliderText := BottomSlider(playing.PercentageLeft())
-		text.BottomLeft(sliderText)
-	} else {
-		text.TopLeft(playing.Song)
-		text.BottomLeft(playing.Artist)
-	}
-
-	return text.GetText()
-}
 
 func BottomSlider(percentage int) string {
 	pct := percentage

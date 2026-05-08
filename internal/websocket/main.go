@@ -122,3 +122,9 @@ func ToBytes(msg any) []byte {
 	}
 	return bytes
 }
+
+func (w *WebSocket) ClientCount() int {
+	w.mutex.Lock()
+	defer w.mutex.Unlock()
+	return len(w.clients)
+}
