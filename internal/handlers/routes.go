@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"net/http"
-	"slices"
 	"splitflap-backend/internal/utils"
 
 	"github.com/gin-contrib/cors"
@@ -12,14 +11,10 @@ import (
 func SetupRouting(a *Application) *gin.Engine {
 
 	r := gin.Default()
-	validOrigins := []string{"http://fdevc.com", "https://fdevc.com", "https://github.com/gilmaimon/TinyWebsockets"}
 	config := cors.Config{
-		// AllowOrigins: validOrigins,
+		AllowOrigins: []string{"http://fdevc.com", "https://fdevc.com", "https://github.com/gilmaimon/TinyWebsockets"},
 		AllowMethods: []string{http.MethodGet, http.MethodPost, http.MethodDelete},
 		AllowHeaders: []string{"*"},
-		AllowOriginFunc: func(origin string) bool {
-			return slices.Contains(validOrigins, origin)
-		},
 	}
 
 	r.Use(cors.New(config))

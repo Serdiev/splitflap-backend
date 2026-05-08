@@ -3,12 +3,13 @@ package handlers
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"splitflap-backend/internal/lcd_display"
 	"splitflap-backend/internal/models"
 	"splitflap-backend/internal/spotify"
 	"splitflap-backend/internal/stocks"
 	"splitflap-backend/internal/utils"
-	"strings"
 
 	gen "splitflap-backend/internal/generated"
 	ws "splitflap-backend/internal/websocket"
@@ -70,10 +71,12 @@ func (a *Application) isState(state DisplayState) bool {
 }
 
 func (a *Application) HandleSplitflapState(state *gen.SplitflapState) {
-	text := ""
+	var builder strings.Builder
+	builder.Grow(len(state.Modules))
 	for _, module := range state.Modules {
-		text += string(cfg.Splitflap.AlphabetESP32Order[module.FlapIndex])
+		builder.WriteByte(cfg.Splitflap.AlphabetESP32Order[module.FlapIndex])
 	}
+	text := builder.String()
 
 	// set text so we can read whenever we load
 	newText := utils.MapForReading(text)

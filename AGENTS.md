@@ -18,8 +18,8 @@ Go backend for controlling split-flap display hardware on Raspberry Pi 4. Integr
 - [x] ~~Duplicate `getPlayingText()` function~~ (removed from `internal/utils/text.go`)
 - [x] Mixed logging (`fmt.Println` vs structured logger in `spotify_handler.go`, `spotify.go`)
 - [ ] Error return values ignored (e.g., `message_handler.go` ignores `SendMessage` error)
-- [ ] Hardcoded magic numbers (`24`, `12`) instead of using config values
-- [ ] Unused `validOrigins` variable in `routes.go`
+- [x] Hardcoded magic numbers (`24`, `12`) instead of using config values
+- [x] Unused `validOrigins` variable in `routes.go`
 
 ### Concurrency Issues
 - [ ] `SpotifyClients` and `LcdDisplays` maps accessed without mutex protection
@@ -36,7 +36,6 @@ Go backend for controlling split-flap display hardware on Raspberry Pi 4. Integr
 - [ ] Potential nil pointer in `handleSplitflapState` (`application.go:72-87`)
 - [ ] State machine incomplete (`idleState()` always returns false, clock state not implemented)
 - [ ] Serial read loop lacks buffer size limits
-- [ ] No CI/CD pipeline
 
 ---
 
@@ -81,18 +80,13 @@ Go backend for controlling split-flap display hardware on Raspberry Pi 4. Integr
 
 8. **Code Cleanup**
    - Remove unused variables (e.g., `validOrigins` in `routes.go`)
-   - Add GoDoc comments to exported functions
+   - Add GoDoc comments on exported functions
    - Remove commented-out code blocks
 
-9. **CI/CD Pipeline**
-   - Add Makefile targets for testing, linting, building
-   - Add `golangci-lint` to CI
-   - Add GitHub Actions or similar
-
-10. **Complete Incomplete Features**
-    - Implement clock state in state machine
-    - Review and complete `idleState()` logic
-    - Add proper nil checks in `handleSplitflapState`
+9. **Complete Incomplete Features**
+   - Implement clock state in state machine
+   - Review and complete `idleState()` logic
+   - Add proper nil checks in `handleSplitflapState`
 
 ---
 
@@ -111,4 +105,4 @@ go test ./...
 
 ---
 
-*Last reviewed: 2026-05-08* (WebSocket CheckOrigin fixed)
+*Last reviewed: 2026-05-08* (WebSocket CheckOrigin, logging, magic numbers, string concat fixed)
