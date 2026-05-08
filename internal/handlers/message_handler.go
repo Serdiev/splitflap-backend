@@ -4,8 +4,6 @@ import (
 	"encoding/base64"
 	"net/http"
 
-	"splitflap-backend/internal/logger"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -75,23 +73,4 @@ func (a *Application) GetStatus(c *gin.Context) {
 		Image:          imageBase64,
 		Playing:        playing,
 	})
-}
-
-type LogRequest struct {
-	Text string `json:"text"`
-}
-
-func (a *Application) LogMessage(c *gin.Context) {
-	var request LogRequest
-	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	logger.Error().Msg(request.Text)
-	c.JSON(http.StatusOK, gin.H{"status": "logged"})
-}
-
-func (a *Application) GetWsClientCount(c *gin.Context) {
-	count := a.Ws.ClientCount()
-	c.JSON(http.StatusOK, gin.H{"count": count})
 }

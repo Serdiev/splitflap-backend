@@ -48,9 +48,6 @@ func SetupRouting(a *Application) *gin.Engine {
 		api.GET("/image/:id/:hash", utils.ValidatePath(a.FetchImage))
 		api.POST("/image/:id", utils.ValidateRequest(a.SetImage))
 		api.DELETE("/image/:id", utils.ValidatePath(a.DeleteImage))
-
-		api.POST("/log", a.LogMessage)
-		api.GET("/ws-count", a.GetWsClientCount)
 	}
 
 	// host webpage to interact

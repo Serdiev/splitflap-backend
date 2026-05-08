@@ -11,8 +11,8 @@ Go backend for controlling split-flap display hardware on Raspberry Pi 4. Integr
 ## Code Review Findings
 
 ### Security Issues
-- [ ] WebSocket `CheckOrigin` accepts all origins (`internal/websocket/main.go`)
-- [ ] Log endpoint (`/log`) lacks input validation/sanitization
+- [x] WebSocket `CheckOrigin` accepts all origins (`internal/websocket/main.go`)
+- [x] Log endpoint (`/log`) lacks input validation/sanitization
 - [ ] Credentials stored in `.env` without encryption
 
 ### Code Quality Issues
@@ -112,4 +112,4 @@ go test ./...
 
 ---
 
-*Last reviewed: 2026-05-08*
+*Last reviewed: 2026-05-08* (WebSocket CheckOrigin fixed)
