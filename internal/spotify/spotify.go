@@ -19,6 +19,7 @@ var cfg = config.New()
 
 type SpotifyClient struct {
 	client        *http.Client
+	baseUrl       string
 	loggedIn      bool
 	pauseFetching bool
 	isFetching    bool
@@ -27,6 +28,7 @@ type SpotifyClient struct {
 
 func NewNoopSpotifyClient() *SpotifyClient {
 	return &SpotifyClient{
+		baseUrl:       cfg.Spotify.BaseUrl,
 		loggedIn:      false,
 		isFetching:    false,
 		pauseFetching: false,
@@ -37,6 +39,7 @@ func NewNoopSpotifyClient() *SpotifyClient {
 func NewSpotifyClient(client *http.Client) *SpotifyClient {
 	return &SpotifyClient{
 		client:        client,
+		baseUrl:       cfg.Spotify.BaseUrl,
 		loggedIn:      true,
 		isFetching:    false,
 		pauseFetching: true,
@@ -54,6 +57,21 @@ func (sc *SpotifyClient) DeleteHandler(name string) {
 
 func (sc *SpotifyClient) IsLoggedIn() bool {
 	return sc.loggedIn
+}
+
+func (sc *SpotifyClient) Handlers() map[string]func(playing *models.SpotifyIsPlaying) {
+	return sc.handlers
+}
+
+func NewSpotifyClientWithBaseUrl(baseUrl string, client *http.Client) *SpotifyClient {
+	return &SpotifyClient{
+		client:        client,
+		baseUrl:       baseUrl,
+		loggedIn:      true,
+		isFetching:    false,
+		pauseFetching: true,
+		handlers:      map[string]func(playing *models.SpotifyIsPlaying){},
+	}
 }
 
 func (sc *SpotifyClient) Dispose() {
@@ -108,7 +126,7 @@ func (sc *SpotifyClient) GetCurrentlyPlaying() (*models.SpotifyIsPlaying, error)
 
 	var spotifyResp *SpotifyResponse
 
-	err := fluent.Get(cfg.Spotify.BaseUrl+"/me/player/currently-playing?additional_types=track,episode").
+	err := fluent.Get(sc.baseUrl+"/me/player/currently-playing?additional_types=track,episode").
 		WithClient(sc.client).
 		OnStatusCode(http.StatusNoContent, func(_ []byte) error {
 			return nil
@@ -133,18 +151,18 @@ func (sc *SpotifyClient) GetCurrentlyPlaying() (*models.SpotifyIsPlaying, error)
 	}
 
 	if spotifyResp == nil {
-		return nil, errors.New("no response")
+		return nil, nil
 	}
 
 	if spotifyResp.IsPlaying {
-		return mapToDto(spotifyResp), nil
+		return MapToDto(spotifyResp), nil
 	}
 
 	return nil, nil
 }
 
-func mapToDto(resp *SpotifyResponse) *models.SpotifyIsPlaying {
-	secondsLeft := asSeconds(resp.Item.DurationMS - resp.ProgressMS)
+func MapToDto(resp *SpotifyResponse) *models.SpotifyIsPlaying {
+	secondsLeft := AsSeconds(resp.Item.DurationMS - resp.ProgressMS)
 	imageUrl := ""
 	for _, image := range resp.Item.Album.Images {
 		if image.Height == 64 && image.Width == 64 {
@@ -163,10 +181,10 @@ func mapToDto(resp *SpotifyResponse) *models.SpotifyIsPlaying {
 		return &models.SpotifyIsPlaying{
 			Song:            utils.ReplaceDisallowedLetters(strings.Replace(resp.Item.Name, "#", "", 1)),
 			Artist:          utils.ReplaceDisallowedLetters(resp.Item.Show.Name),
-			ProgressMs:      asSeconds(resp.ProgressMS),
-			DurationMs:      asSeconds(resp.Item.DurationMS),
+			ProgressMs:      AsSeconds(resp.ProgressMS),
+			DurationMs:      AsSeconds(resp.Item.DurationMS),
 			SecondsLeft:     secondsLeft,
-			TimeLeft:        formatSecondsToMMSS(secondsLeft),
+			TimeLeft:        FormatSecondsToMMSS(secondsLeft),
 			Image64PixelUrl: imageUrl,
 		}
 	}
@@ -174,19 +192,19 @@ func mapToDto(resp *SpotifyResponse) *models.SpotifyIsPlaying {
 	return &models.SpotifyIsPlaying{
 		Song:            utils.ReplaceDisallowedLetters(resp.Item.Name),
 		Artist:          utils.ReplaceDisallowedLetters(resp.Item.Artists[0].Name),
-		ProgressMs:      asSeconds(resp.ProgressMS),
-		DurationMs:      asSeconds(resp.Item.DurationMS),
+		ProgressMs:      AsSeconds(resp.ProgressMS),
+		DurationMs:      AsSeconds(resp.Item.DurationMS),
 		SecondsLeft:     secondsLeft,
-		TimeLeft:        formatSecondsToMMSS(secondsLeft),
+		TimeLeft:        FormatSecondsToMMSS(secondsLeft),
 		Image64PixelUrl: imageUrl,
 	}
 }
 
-func asSeconds(ms int64) int {
+func AsSeconds(ms int64) int {
 	return int(ms / 1000)
 }
 
-func formatSecondsToMMSS(seconds int) string {
+func FormatSecondsToMMSS(seconds int) string {
 	duration := time.Second * time.Duration(seconds)
 	minutes := int(duration.Minutes())
 	remainingSeconds := seconds - (minutes * 60)

@@ -26,8 +26,8 @@ Go backend for controlling split-flap display hardware on Raspberry Pi 4. Integr
 - [ ] WebSocket broadcast modifies map during iteration (potential race condition)
 
 ### Testing & Documentation
-- [ ] Very limited test coverage - only 4 test files
-- [ ] Critical paths untested: Spotify integration, serial communication, state machine
+- [x] ~~Very limited test coverage - only 4 test files~~ (now has 16 spotify tests)
+- [ ] Critical paths untested: serial communication, state machine
 - [ ] No API documentation
 - [ ] Missing GoDoc comments on exported functions
 

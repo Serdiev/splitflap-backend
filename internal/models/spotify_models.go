@@ -11,6 +11,9 @@ type SpotifyIsPlaying struct {
 }
 
 func (s *SpotifyIsPlaying) PercentageLeft() int {
+	if s.DurationMs == 0 {
+		return 0
+	}
 	pct := s.ProgressMs * 100 / s.DurationMs
 	return pct
 }
