@@ -59,7 +59,7 @@ func GetInitialAccessToken(deviceId string, code string) *oauth2.Token {
 		WithClientCredentials(spotifyConfig.ClientId, spotifyConfig.ClientSecret).
 		WithContentType("application/x-www-form-urlencoded").
 		OnSuccess(func(bytes []byte) error {
-			fmt.Println("res", string(bytes))
+			logger.Info().Str("response", string(bytes)).Msg("Spotify: initial token response")
 			innerErr := json.Unmarshal(bytes, &token)
 
 			if innerErr != nil {

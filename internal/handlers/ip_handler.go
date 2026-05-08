@@ -1,8 +1,9 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
+
+	"splitflap-backend/internal/logger"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,6 +19,6 @@ func (a *Application) UpdateESP32IPAddress(ctx *gin.Context, request Boop) {
 		return
 	}
 
-	fmt.Println("Received ip:", request.IpAddress)
+	logger.Info().Str("ip", request.IpAddress).Msg("IP handler: received ESP32 IP")
 	ctx.Status(http.StatusNoContent)
 }

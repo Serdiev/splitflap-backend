@@ -13,7 +13,6 @@ Go backend for controlling split-flap display hardware on Raspberry Pi 4. Integr
 ### Security Issues
 - [x] WebSocket `CheckOrigin` accepts all origins (`internal/websocket/main.go`)
 - [x] Log endpoint (`/log`) lacks input validation/sanitization
-- [ ] Credentials stored in `.env` without encryption
 
 ### Code Quality Issues
 - [x] ~~Duplicate `getPlayingText()` function~~ (removed from `internal/utils/text.go`)

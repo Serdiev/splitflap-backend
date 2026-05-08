@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"time"
+
 	config "splitflap-backend/configs"
 	"splitflap-backend/internal/logger"
 	"splitflap-backend/internal/models"
 	"splitflap-backend/internal/utils"
 	"splitflap-backend/pkg/fluent"
 	"strings"
-	"time"
 )
 
 var cfg = config.New()
@@ -66,18 +67,18 @@ func (sc *SpotifyClient) StartLoop() {
 	}
 
 	go func() {
-		fmt.Println("Starting spotify client loop")
+		logger.Info().Msg("Spotify: starting client loop")
 		sc.isFetching = true
 		backoffSeconds := 2
 
 		for {
 			if !sc.isFetching {
-				fmt.Println("Exiting spotify fetch loop")
+				logger.Info().Msg("Spotify: exiting fetch loop")
 				return
 			}
 
 			if len(sc.handlers) == 0 {
-				fmt.Println("sleeping because no handlers")
+				logger.Info().Msg("Spotify: sleeping - no handlers")
 				time.Sleep(1 * time.Second)
 				continue
 			}

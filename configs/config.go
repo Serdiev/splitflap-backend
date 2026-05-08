@@ -1,12 +1,12 @@
 package config
 
 import (
-	"fmt"
 	"os"
 	"strconv"
 	"strings"
 
 	"github.com/joho/godotenv"
+	"splitflap-backend/internal/logger"
 )
 
 type Configuration struct {
@@ -125,7 +125,7 @@ func New() Configuration {
 func GetVar(str string, fallback string) string {
 	v := os.Getenv(str)
 	if v == "" {
-		fmt.Printf("missing env var: %s\n", str)
+		logger.Warn().Str("key", str).Msg("config: missing env var, using fallback")
 		return fallback
 	}
 

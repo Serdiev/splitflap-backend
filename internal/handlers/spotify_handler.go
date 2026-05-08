@@ -1,13 +1,13 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
+	"time"
+
 	config "splitflap-backend/configs"
 	"splitflap-backend/internal/logger"
 	"splitflap-backend/internal/models"
 	"splitflap-backend/internal/spotify"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/oauth2"
@@ -44,17 +44,15 @@ type LoginRequest struct {
 func (a *Application) SpotifyLogin(c *gin.Context, request LoginRequest) {
 	config := cfg.Spotify.SpotifyConfigurations[request.DeviceId]
 
-	fmt.Println("Using config: ", config)
-	fmt.Println("request: ", request)
+	logger.Info().Str("device_id", request.DeviceId).Msg("Spotify: login request")
 
-	// Construct the redirect URL
 	redirectURL := "https://accounts.spotify.com/authorize?" +
 		"response_type=code" +
 		"&scope=user-read-currently-playing" +
 		"&client_id=" + config.ClientId +
 		"&redirect_uri=" + cfg.Spotify.RedirectUrl + "/" + request.DeviceId
 
-	fmt.Println("Redirect URL: ", redirectURL)
+	logger.Info().Str("redirect_url", redirectURL).Msg("Spotify: redirect URL")
 
 	c.Redirect(307, redirectURL)
 }
@@ -108,29 +106,18 @@ func (a *Application) ToggleSpotify(c *gin.Context) {
 }
 
 func (a *Application) handleSpotifyClient(spotifyAccountId SpotifyAccountId, client *spotify.SpotifyClient) {
-	fmt.Println("Handling new spotify client for id", spotifyAccountId)
-	// Delete old client
+	logger.Info().Str("id", string(spotifyAccountId)).Msg("Spotify: handling new client")
 	spotifyClient, exists := a.SpotifyClients[spotifyAccountId]
 	if exists {
-		fmt.Println("Disposing old client", spotifyAccountId)
+		logger.Info().Str("id", string(spotifyAccountId)).Msg("Spotify: disposing old client")
 		spotifyClient.Dispose()
 		delete(a.SpotifyClients, spotifyAccountId)
 	}
 
-	// Save new client
 	a.SpotifyClients[spotifyAccountId] = client
 
-	// // Delete old lcd display
-	// delete(a.LcdDisplays, spotifyAccountId)
-
-	// // Create new lcd display
-	// newLcd := lcd_display.NewLcdDisplay(string(spotifyAccountId))
-	// a.LcdDisplays[spotifyAccountId] = newLcd
-
-	// client.RegisterHandler("update-lcd-image", newLcd.HandleIsPlaying)
-
 	if spotifyAccountId == MainSpotifyAccountId {
-		fmt.Println("Adding splitflap handler", spotifyAccountId)
+		logger.Info().Str("id", string(spotifyAccountId)).Msg("Spotify: adding splitflap handler")
 		client.RegisterHandler("update-splitflap", a.SendIsPlayingTextToSplitflap)
 	}
 

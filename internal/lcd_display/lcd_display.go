@@ -1,7 +1,7 @@
 package lcd_display
 
 import (
-	"fmt"
+	"splitflap-backend/internal/logger"
 	"splitflap-backend/internal/models"
 	"splitflap-backend/internal/utils"
 	ws "splitflap-backend/internal/websocket"
@@ -41,13 +41,12 @@ func (d *Esp32LcdDisplay) SetImage(img *utils.Image) {
 
 func (d *Esp32LcdDisplay) HandleIsPlaying(playing *models.SpotifyIsPlaying) {
 	if playing == nil && d.isPlaying != nil {
-		// broadcast that we don't have an image anymore
-		fmt.Println("send no-image")
+		logger.Info().Msg("LCD: sending no-image")
 		d.latestImage = nil
 		d.Ws.BroadcastMessageAsText([]byte("no-image"))
 	} else if (playing != nil && d.isPlaying == nil) ||
 		(playing != nil && d.isPlaying != nil && playing.Image64PixelUrl != d.isPlaying.Image64PixelUrl) {
-		fmt.Println("update image to ", playing.Image64PixelUrl)
+		logger.Info().Str("url", playing.Image64PixelUrl).Msg("LCD: updating image")
 		// we have a new image to show
 		d.latestImage = utils.ConvertUrlToImage(playing.Image64PixelUrl)
 		bts, err := d.latestImage.ToBytes()

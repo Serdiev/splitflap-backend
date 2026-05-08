@@ -18,6 +18,10 @@ func Error() *zerolog.Event {
 	return Log.Error()
 }
 
+func Warn() *zerolog.Event {
+	return Log.Warn()
+}
+
 func Fatal() *zerolog.Event {
 	return Log.Fatal()
 }

@@ -1,7 +1,6 @@
 package sender
 
 import (
-	"fmt"
 	"math/rand"
 	"splitflap-backend/internal/logger"
 	"splitflap-backend/internal/usb_serial"
@@ -50,9 +49,7 @@ func (m *UsbSerialSender) SendMessage(text string, sentBy string) error {
 	}
 	m.CurrentText = text
 
-	logger.Info().Msgf("Sent by: %s", sentBy)
-	logger.Info().Msgf("upper: %s", text[0:12])
-	logger.Info().Msgf("lower: %s", text[12:])
+	logger.Info().Msgf("New msg sent by: %s upper: %s. lower: %s", sentBy, text[0:12], text[12:])
 
 	mapped := utils.MapForSending(text)
 	m.sf.SetText(mapped)
@@ -71,12 +68,12 @@ func (m *UsbSerialSender) matrixReplacement(newText string) {
 	for i := 0; i < cfg.Splitflap.ModuleCount/lettersPerRun; i++ {
 		for i := 0; i < lettersPerRun; i++ {
 			randomIndex := indexesLeft[rand.Intn(len(indexesLeft))]
-			fmt.Println(randomIndex)
+			logger.Info().Int("index", randomIndex).Msg("matrix: replacement index")
 			m.CurrentRemapped = replaceAt(m.CurrentRemapped, randomIndex, rune(newText[randomIndex]))
 			indexesLeft = removeValue(indexesLeft, randomIndex)
 		}
 
-		fmt.Println("curr", m.CurrentRemapped)
+		logger.Info().Str("text", m.CurrentRemapped).Msg("matrix: current remapped")
 		m.sf.SetText(m.CurrentRemapped)
 		time.Sleep(50 * time.Millisecond)
 	}
