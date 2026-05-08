@@ -20,7 +20,7 @@ func CreateService(c context.Context) *Application {
 		Context:                      c,
 		Stocks:                       stocks.NewAvanzaClient(),
 		State:                        Idle,
-		Ws:                           *ws.NewWebsocket(),
+		Ws:                           *ws.NewWebsocket(cfg.General.AllowedOrigins),
 		LcdDisplays:                  map[SpotifyAccountId]*lcd_display.Esp32LcdDisplay{},
 		SpotifyClients:               map[SpotifyAccountId]*spotify.SpotifyClient{},
 		SpotifyShouldUpdateSplitFlap: false,

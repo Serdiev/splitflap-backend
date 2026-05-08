@@ -21,7 +21,7 @@ func (a *Application) LcdWebsocketHandler(ctx *gin.Context, request WebSocketReq
 
 	lcd, exists := a.LcdDisplays[request.Id]
 	if !exists {
-		a.LcdDisplays[request.Id] = lcd_display.NewLcdDisplay(string(request.Id))
+		a.LcdDisplays[request.Id] = lcd_display.NewLcdDisplay(string(request.Id), cfg.General.AllowedOrigins)
 		fmt.Println("Lcd not found")
 		ctx.AbortWithStatus(404)
 		return

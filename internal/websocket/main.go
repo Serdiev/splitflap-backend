@@ -18,7 +18,7 @@ type WebSocket struct {
 	upgrader         websocket.Upgrader
 }
 
-func NewWebsocket() *WebSocket {
+func NewWebsocket(allowedOrigins []string) *WebSocket {
 	return &WebSocket{
 		clients:          map[*websocket.Conn]bool{},
 		HandleNewMessage: nil,
@@ -27,7 +27,13 @@ func NewWebsocket() *WebSocket {
 			ReadBufferSize:  1024,
 			WriteBufferSize: 1024,
 			CheckOrigin: func(r *http.Request) bool {
-				return true
+				origin := r.Header.Get("Origin")
+				for _, allowed := range allowedOrigins {
+					if origin == allowed {
+						return true
+					}
+				}
+				return false
 			},
 		},
 	}

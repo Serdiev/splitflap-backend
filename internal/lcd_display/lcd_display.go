@@ -14,10 +14,10 @@ type Esp32LcdDisplay struct {
 	Ws          ws.WebSocket
 }
 
-func NewLcdDisplay(id string) *Esp32LcdDisplay {
+func NewLcdDisplay(id string, allowedOrigins []string) *Esp32LcdDisplay {
 	c := &Esp32LcdDisplay{
 		id: id,
-		Ws: *ws.NewWebsocket(),
+		Ws: *ws.NewWebsocket(allowedOrigins),
 	}
 	return c
 }
