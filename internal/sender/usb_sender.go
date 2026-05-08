@@ -5,7 +5,6 @@ import (
 	"splitflap-backend/internal/logger"
 	"splitflap-backend/internal/usb_serial"
 	"splitflap-backend/internal/utils"
-	"strings"
 	"time"
 
 	gen "splitflap-backend/internal/generated"
@@ -38,18 +37,14 @@ func NewUsbSerialSender(handleState func(state *gen.SplitflapState)) *UsbSerialS
 
 // SendMessage sends the given text over the serial usb
 func (m *UsbSerialSender) SendMessage(text string, sentBy string) error {
-	if len(text) < 24 {
-		text = text + strings.Repeat(" ", 24-len(text))
-	} else if len(text) > 24 {
-		text = text[:24]
-	}
 
+	text = utils.PadWithSpaces(text)
 	if m.CurrentText == text {
 		return nil
 	}
 	m.CurrentText = text
 
-	logger.Info().Msgf("New msg sent by: %s upper: %s. lower: %s", sentBy, text[0:12], text[12:])
+	logger.Info().Msgf("New msg sent by: %s upper: %s. lower: %s", sentBy, text[0:cfg.GetRowLength()], text[cfg.GetRowLength():cfg.Splitflap.ModuleCount])
 
 	mapped := utils.MapForSending(text)
 	m.sf.SetText(mapped)

@@ -16,7 +16,7 @@ Go backend for controlling split-flap display hardware on Raspberry Pi 4. Integr
 
 ### Code Quality Issues
 - [x] ~~Duplicate `getPlayingText()` function~~ (removed from `internal/utils/text.go`)
-- [ ] Mixed logging (`fmt.Println` vs structured logger in `spotify_handler.go`, `spotify.go`)
+- [x] Mixed logging (`fmt.Println` vs structured logger in `spotify_handler.go`, `spotify.go`)
 - [ ] Error return values ignored (e.g., `message_handler.go` ignores `SendMessage` error)
 - [ ] Hardcoded magic numbers (`24`, `12`) instead of using config values
 - [ ] Unused `validOrigins` variable in `routes.go`

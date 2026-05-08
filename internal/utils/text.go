@@ -5,8 +5,6 @@ import (
 	"strings"
 )
 
-var ROW_LENGTH = 12
-
 type TextHelper struct {
 	upper string
 	lower string
@@ -14,8 +12,8 @@ type TextHelper struct {
 
 func NewText() TextHelper {
 	return TextHelper{
-		upper: strings.Repeat(" ", ROW_LENGTH),
-		lower: strings.Repeat(" ", ROW_LENGTH),
+		upper: strings.Repeat(" ", cfg.GetRowLength()),
+		lower: strings.Repeat(" ", cfg.GetRowLength()),
 	}
 }
 
@@ -41,8 +39,8 @@ func (t *TextHelper) BottomRight(text string) {
 
 func (t *TextHelper) BeginWith(currentText string, text string) string {
 	textLength := len(text)
-	if textLength > ROW_LENGTH {
-		textLength = ROW_LENGTH
+	if textLength > cfg.GetRowLength() {
+		textLength = cfg.GetRowLength()
 	}
 
 	newText := []byte(currentText)
@@ -54,14 +52,15 @@ func (t *TextHelper) BeginWith(currentText string, text string) string {
 }
 
 func (t *TextHelper) EndWith(currentText string, text string) string {
+	rowLength := cfg.GetRowLength()
 	textLength := len(text)
-	if textLength > ROW_LENGTH {
-		textLength = ROW_LENGTH
+	if textLength > rowLength {
+		textLength = rowLength
 	}
 
 	newText := []byte(currentText)
 	for i := textLength - 1; i >= 0; i-- {
-		newText[ROW_LENGTH-textLength+i] = text[i]
+		newText[rowLength-textLength+i] = text[i]
 	}
 
 	return string(newText)
@@ -102,8 +101,6 @@ func ReplaceDisallowedLetters(s string) string {
 	output = strings.ReplaceAll(output, "\\", "i")
 	return output
 }
-
-
 
 func BottomSlider(percentage int) string {
 	pct := percentage

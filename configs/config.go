@@ -5,8 +5,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/joho/godotenv"
 	"splitflap-backend/internal/logger"
+
+	"github.com/joho/godotenv"
 )
 
 type Configuration struct {
@@ -17,10 +18,10 @@ type Configuration struct {
 }
 
 type General struct {
-	TimeZone      string
-	CertFile      string
-	KeyFile       string
-	IsLocal       bool
+	TimeZone       string
+	CertFile       string
+	KeyFile        string
+	IsLocal        bool
 	AllowedOrigins []string
 }
 
@@ -51,7 +52,7 @@ type SpotifyConfig struct {
 	SpotifyConfigurations map[string]SpotifyAccountConfig
 }
 
-func (c *Configuration) GetRowLength() int {
+func (c Configuration) GetRowLength() int {
 	return c.Splitflap.ModuleCount / 2
 }
 
