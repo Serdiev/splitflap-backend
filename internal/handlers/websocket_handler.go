@@ -21,10 +21,9 @@ func (a *Application) LcdWebsocketHandler(ctx *gin.Context, request WebSocketReq
 
 	lcd, exists := a.LcdDisplays[request.Id]
 	if !exists {
-		a.LcdDisplays[request.Id] = lcd_display.NewLcdDisplay(string(request.Id), cfg.General.AllowedOrigins)
+		lcd = lcd_display.NewLcdDisplay(string(request.Id), cfg.General.AllowedOrigins)
+		a.LcdDisplays[request.Id] = lcd
 		logger.Warn().Str("id", string(request.Id)).Msg("WS handler: LCD not found, created new")
-		ctx.AbortWithStatus(404)
-		return
 	}
 
 	spotifyClient.RegisterHandler("update-lcd-image", lcd.HandleIsPlaying)

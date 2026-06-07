@@ -16,13 +16,12 @@ type MQTTSender struct {
 	initiated bool
 }
 
-// SendMessage sends the given text as a message using MQTT.
 func (m *MQTTSender) SendMessage(text string) error {
-	if !m.isInitiated() {
+	if !m.initiated {
 		return nil
 	}
 
-	token := m.client.Publish("topic", 0, false, text)
+	token := m.client.Publish(m.topic, 0, false, text)
 	token.Wait()
 	if token.Error() != nil {
 		return token.Error()
@@ -31,17 +30,21 @@ func (m *MQTTSender) SendMessage(text string) error {
 	return nil
 }
 
-func (m *MQTTSender) isInitiated() bool {
-	return m.initiated
-}
-
 // NewMQTTSender creates a new instance of MQTTSender.
 func NewMQTTSender(topic string) *MQTTSender {
+	if !cfg.MQTT.Enabled {
+		logger.Info().Msg("MQTT is disabled, skipping sender creation")
+		return &MQTTSender{
+			initiated: false,
+		}
+	}
+
 	opts := MQTT.NewClientOptions()
 	opts.AddBroker(cfg.MQTT.BrokerUrl)
-	opts.SetClientID("some_sender")
+	opts.SetClientID("lcd_sender")
+	opts.SetUsername(cfg.MQTT.Username)
+	opts.SetPassword(cfg.MQTT.Password)
 
-	// Create MQTT client
 	client := MQTT.NewClient(opts)
 
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
@@ -50,7 +53,6 @@ func NewMQTTSender(topic string) *MQTTSender {
 			initiated: false,
 		}
 	}
-	defer client.Disconnect(250)
 
 	return &MQTTSender{
 		client:    client,

@@ -28,7 +28,9 @@ type General struct {
 type MQTTConfig struct {
 	Enabled   bool
 	BrokerUrl string
-	Topic     string
+	LcdTopic  string
+	Username  string
+	Password  string
 }
 
 type SpotifyAccountConfig struct {
@@ -71,6 +73,13 @@ func New() Configuration {
 	}
 
 	cfg = &Configuration{
+		MQTT: MQTTConfig{
+			Enabled:   GetVar("MQTT_ENABLED", "false") == "true",
+			BrokerUrl: GetVar("MQTT_BROKER", ""),
+			LcdTopic:  GetVar("MQTT_LCD_TOPIC", ""),
+			Username:  GetVar("MQTT_USERNAME", ""),
+			Password:  GetVar("MQTT_PASSWORD", ""),
+		},
 		Spotify: SpotifyConfig{
 			BaseUrl:               GetVar("SPOTIFY_URL", ""),
 			TokenUrl:              GetVar("SPOTIFY_TOKEN_URL", ""),
